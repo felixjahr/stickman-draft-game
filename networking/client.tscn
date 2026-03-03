@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://mrx73yralrmc"]
+
+[ext_resource type="Script" uid="uid://cey8cauvutinj" path="res://networking/client.gd" id="1_ti1oh"]
+[ext_resource type="Script" uid="uid://dbadsd2pwibq5" path="res://networking/client_net.gd" id="2_30660"]
+[ext_resource type="Script" uid="uid://dqsxm57ibh1wi" path="res://networking/client_game.gd" id="4_43dsu"]
+
+[node name="Test" type="Node" unique_id=63357991]
+script = ExtResource("1_ti1oh")
+
+[node name="Label" type="Label" parent="." unique_id=1194888626]
+offset_right = 358.0
+offset_bottom = 175.0
+theme_override_font_sizes/font_size = 128
+text = "Client"
+
+[node name="Net" type="Node" parent="." unique_id=1034516271]
+script = ExtResource("2_30660")
+
+[node name="Game" type="Node" parent="." unique_id=935680825]
+script = ExtResource("4_43dsu")
+
+[node name="UIContainer" type="CanvasLayer" parent="." unique_id=978794642]
+
+[connection signal="match_started" from="Net" to="." method="_on_net_match_started"]
+[connection signal="peer_connected" from="Net" to="Game" method="_on_net_peer_connected"]
+[connection signal="snapshot_received" from="Net" to="Game" method="_on_net_snapshot_received"]

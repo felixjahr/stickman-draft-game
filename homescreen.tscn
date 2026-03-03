@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://c2gylopltiver"]
+
+[node name="Homescreen" type="Control" unique_id=183356070]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Play" type="Button" parent="." unique_id=398202172]
+layout_mode = 0
+offset_left = 219.0
+offset_top = 296.0
+offset_right = 328.0
+offset_bottom = 422.0
+text = "Play"

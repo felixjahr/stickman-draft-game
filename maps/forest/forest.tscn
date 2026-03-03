@@ -7,7 +7,6 @@
 [ext_resource type="Texture2D" uid="uid://y5acrvwd4wop" path="res://maps/forest/sprites/forest_background_l5.png" id="5_0xq07"]
 [ext_resource type="Texture2D" uid="uid://c80a8lqc2h0ep" path="res://maps/forest/sprites/forest_platforms.png" id="6_0xq07"]
 [ext_resource type="Texture2D" uid="uid://dowb2ykuj5ur3" path="res://maps/forest/sprites/forest_spikes.png" id="7_ug5rr"]
-[ext_resource type="PackedScene" uid="uid://bc4wjc3ydyyvs" path="res://player/player.tscn" id="8_fb6i4"]
 
 [node name="Forest" type="Node2D" unique_id=1672519937]
 
@@ -73,5 +72,9 @@ polygon = PackedVector2Array(284, -33.9, 284, -34.5, 276.2, -34.5, 249.5, 24.7, 
 position = Vector2(0, 251)
 polygon = PackedVector2Array(345, -34.5, 340.8, -34.5, 311.5, 27.8, 283, -33.9, 283, -34.5, 278.8, -34.5, 249.29999, 27.2, 221, -33, 221, -34.5, 216.79999, -34.5, 187.5, 26.8, 158, -34, 153.79999, -34.5, 124.5, 27.8, 96, -33.9, 96, -34.5, 91.79999, -34.5, 62.299988, 27.2, 34, -33, 34, -34.5, 29.799988, -34.5, 0.5, 26.8, -29, -34, -33.200012, -34.5, -62.5, 27.8, -91, -33.9, -91, -34.5, -95.20001, -34.5, -124.7, 27.2, -153, -33, -153, -34.5, -157.2, -34.5, -186.5, 26.8, -215.8, -34.5, -221.2, -34.5, -249.5, 29.699997, -277.9, -34.5, -283.2, -34.5, -311.6, 29.699997, -340.8, -34.5, -345, -34.5, -345, -33.9, -374, 29.699997, -374, 34.5, 374, 34.5, 374, 29.699997, 345, -33.9)
 
-[node name="Player" parent="." unique_id=1544266739 instance=ExtResource("8_fb6i4")]
-position = Vector2(-598, -39)
+[node name="Camera2D" type="Camera2D" parent="." unique_id=763750876]
+zoom = Vector2(0.68, 0.68)
+limit_left = -1920
+limit_top = -508
+limit_right = 1920
+limit_bottom = 1080
