@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Stickman Draft Game"
-run/main_scene="uid://d1u1vy63g3u1a"
+run/main_scene="uid://cnxwscj2y2tnj"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 

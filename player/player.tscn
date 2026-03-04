@@ -15,7 +15,7 @@ tracks/0/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(13, -40)]
+"values": [Vector2(-13.000001, -37)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -27,7 +27,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(-27, -40)]
+"values": [Vector2(-4, -3.9999995)]
 }
 tracks/2/type = "value"
 tracks/2/imported = false
@@ -39,7 +39,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(53, -40)]
+"values": [Vector2(-5, -33)]
 }
 tracks/3/type = "value"
 tracks/3/imported = false
@@ -51,7 +51,7 @@ tracks/3/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(101, -40)]
+"values": [Vector2(11, -3)]
 }
 tracks/4/type = "value"
 tracks/4/imported = false
@@ -63,7 +63,7 @@ tracks/4/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(21, 48.000004)]
+"values": [Vector2(-9, 31.000002)]
 }
 tracks/5/type = "value"
 tracks/5/imported = false
@@ -75,7 +75,7 @@ tracks/5/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(5, 96)]
+"values": [Vector2(-15.999998, 74)]
 }
 tracks/6/type = "value"
 tracks/6/imported = false
@@ -87,7 +87,7 @@ tracks/6/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(53, 48)]
+"values": [Vector2(2, 31)]
 }
 tracks/7/type = "value"
 tracks/7/imported = false
@@ -99,7 +99,7 @@ tracks/7/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(69, 96)]
+"values": [Vector2(8.000002, 74)]
 }
 tracks/8/type = "value"
 tracks/8/imported = false
@@ -111,7 +111,7 @@ tracks/8/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(37, -72)]
+"values": [Vector2(1, -81)]
 }
 tracks/9/type = "value"
 tracks/9/imported = false
@@ -123,7 +123,7 @@ tracks/9/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(37, -24)]
+"values": [Vector2(-3.0000005, -37)]
 }
 tracks/10/type = "value"
 tracks/10/imported = false
@@ -135,7 +135,7 @@ tracks/10/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Vector2(37, 16)]
+"values": [Vector2(-5, -7.000001)]
 }
 tracks/11/type = "value"
 tracks/11/imported = false
@@ -147,7 +147,7 @@ tracks/11/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [-1.0919003]
 }
 tracks/12/type = "value"
 tracks/12/imported = false
@@ -159,7 +159,7 @@ tracks/12/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [-2.506275]
 }
 tracks/13/type = "value"
 tracks/13/imported = false
@@ -171,7 +171,7 @@ tracks/13/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [1.7540324]
 }
 tracks/14/type = "value"
 tracks/14/imported = false
@@ -183,7 +183,7 @@ tracks/14/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.0]
+"values": [-2.7120194]
 }
 tracks/15/type = "value"
 tracks/15/imported = false
@@ -195,7 +195,7 @@ tracks/15/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [-0.7853982]
+"values": [-1.3800223]
 }
 tracks/16/type = "value"
 tracks/16/imported = false
@@ -207,7 +207,7 @@ tracks/16/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [1.5707964]
+"values": [1.7345113]
 }
 tracks/17/type = "value"
 tracks/17/imported = false
@@ -219,7 +219,7 @@ tracks/17/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [0.7853982]
+"values": [1.2554442]
 }
 tracks/18/type = "value"
 tracks/18/imported = false
@@ -231,7 +231,7 @@ tracks/18/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [1.5707964]
+"values": [1.5834183]
 }
 tracks/19/type = "value"
 tracks/19/imported = false
@@ -255,7 +255,7 @@ tracks/20/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [1.5707964]
+"values": [1.5827934]
 }
 tracks/21/type = "value"
 tracks/21/imported = false
@@ -267,7 +267,7 @@ tracks/21/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [1.5707964]
+"values": [1.5913894]
 }
 
 [sub_resource type="Animation" id="Animation_rkbax"]
@@ -1097,76 +1097,80 @@ libraries/ = SubResource("AnimationLibrary_g6k8r")
 [node name="Sprite" type="Node2D" parent="." unique_id=77773979]
 
 [node name="RightUpperArm" type="Sprite2D" parent="Sprite" unique_id=615372214]
-position = Vector2(13, -40)
+position = Vector2(-13.000001, -37)
+rotation = -1.0919003
 scale = Vector2(0.99999994, 0.99999994)
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(0, 0, 88, 48)
 
 [node name="RightLowerArm" type="Sprite2D" parent="Sprite" unique_id=165468648]
-position = Vector2(-27, -40)
+position = Vector2(-4, -3.9999995)
+rotation = -2.506275
 scale = Vector2(0.99999994, 0.99999994)
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(0, 48, 88, 48)
 
 [node name="LeftUpperArm" type="Sprite2D" parent="Sprite" unique_id=1918446841]
-position = Vector2(53, -40)
+position = Vector2(-5, -33)
+rotation = 1.7540324
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(0, 96, 88, 48)
 
 [node name="LeftLowerArm" type="Sprite2D" parent="Sprite" unique_id=835682656]
-position = Vector2(101, -40)
+position = Vector2(11, -3)
+rotation = -2.7120194
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(0, 144, 88, 48)
 
 [node name="RightUpperLeg" type="Sprite2D" parent="Sprite" unique_id=809241903]
-position = Vector2(21, 48.000004)
-rotation = -0.7853982
+position = Vector2(-9, 31.000002)
+rotation = -1.3800223
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(88, 0, 96, 48)
 
 [node name="RightLowerLeg" type="Sprite2D" parent="Sprite" unique_id=852559389]
-position = Vector2(5, 96)
-rotation = 1.5707964
+position = Vector2(-15.999998, 74)
+rotation = 1.7345113
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(88, 48, 96, 48)
 
 [node name="LeftUpperLeg" type="Sprite2D" parent="Sprite" unique_id=1449323607]
-position = Vector2(53, 48)
-rotation = 0.7853982
+position = Vector2(2, 31)
+rotation = 1.2554442
 scale = Vector2(0.99999994, 0.99999994)
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(88, 96, 96, 48)
 
 [node name="LeftLowerLeg" type="Sprite2D" parent="Sprite" unique_id=1185643097]
-position = Vector2(69, 96)
-rotation = 1.5707964
+position = Vector2(8.000002, 74)
+rotation = 1.5834183
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(88, 144, 96, 48)
 
 [node name="Head" type="Sprite2D" parent="Sprite" unique_id=872670012]
-position = Vector2(37, -72)
+position = Vector2(1, -81)
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(88, 192, 80, 80)
 
 [node name="UpperTorso" type="Sprite2D" parent="Sprite" unique_id=136698451]
-position = Vector2(37, -24)
-rotation = 1.5707964
+position = Vector2(-3.0000005, -37)
+rotation = 1.5827934
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(0, 192, 80, 48)
 
 [node name="LowerTorso" type="Sprite2D" parent="Sprite" unique_id=523735675]
-position = Vector2(37, 16)
-rotation = 1.5707964
+position = Vector2(-5, -7.000001)
+rotation = 1.5913894
 texture = ExtResource("2_rkbax")
 region_enabled = true
 region_rect = Rect2(0, 240, 80, 48)
@@ -1174,10 +1178,3 @@ region_rect = Rect2(0, 240, 80, 48)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2014367572]
 shape = SubResource("RectangleShape2D_rkbax")
 metadata/_edit_lock_ = true
-
-[node name="Camera2D" type="Camera2D" parent="." unique_id=1360012602]
-zoom = Vector2(0.68, 0.68)
-limit_left = -1920
-limit_top = -508
-limit_right = 1920
-limit_bottom = 1080

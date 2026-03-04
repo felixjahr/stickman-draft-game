@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dowb2ykuj5ur3"
-path="res://.godot/imported/forest_spikes.png-6fba2cc05e07a96e06df94e948836d72.ctex"
+uid="uid://47odhunw13ik"
+path="res://.godot/imported/forest_background_l2.png-cdbe56375b0c98e81b96edb5b8eccf2a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://maps/forest/sprites/forest_spikes.png"
-dest_files=["res://.godot/imported/forest_spikes.png-6fba2cc05e07a96e06df94e948836d72.ctex"]
+source_file="res://maps/forest/forest_background_l2.png"
+dest_files=["res://.godot/imported/forest_background_l2.png-cdbe56375b0c98e81b96edb5b8eccf2a.ctex"]
 
 [params]
 

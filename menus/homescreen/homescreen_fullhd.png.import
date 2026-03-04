@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c80a8lqc2h0ep"
-path="res://.godot/imported/forest_platforms.png-0d2aabeabbd088b75f661d8acfab832c.ctex"
+uid="uid://cmt82gxi0ptdf"
+path="res://.godot/imported/homescreen_fullhd.png-02a8b390134e3e4c5b2efbb344a619f7.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://maps/forest/sprites/forest_platforms.png"
-dest_files=["res://.godot/imported/forest_platforms.png-0d2aabeabbd088b75f661d8acfab832c.ctex"]
+source_file="res://menus/homescreen/homescreen_fullhd.png"
+dest_files=["res://.godot/imported/homescreen_fullhd.png-02a8b390134e3e4c5b2efbb344a619f7.ctex"]
 
 [params]
 
