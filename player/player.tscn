@@ -1380,9 +1380,7 @@ position = Vector2(35.112526, -8.95051)
 scale = Vector2(0.2, 0.2)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2014367572]
-visible = false
 shape = SubResource("RectangleShape2D_rkbax")
-metadata/_edit_lock_ = true
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1360012602]
 zoom = Vector2(0.68, 0.68)
