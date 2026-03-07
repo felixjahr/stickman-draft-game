@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://caihdd15xqa3t"]
+
+[ext_resource type="Script" uid="uid://dma0ut8h4lfxi" path="res://weapons/melee/melee.gd" id="1_3aepo"]
+
+[node name="Melee" type="Node2D" unique_id=178270331]
+use_parent_material = true
+script = ExtResource("1_3aepo")
+metadata/_custom_type_script = "uid://o3kvab8nb8xx"
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1940988748]
+use_parent_material = true

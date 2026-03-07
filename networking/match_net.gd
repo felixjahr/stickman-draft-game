@@ -23,12 +23,12 @@ func send_snapshot(tick: int, snapshot: Dictionary) -> void:
 	rpc("receive_snapshot", tick, snapshot)
 
 
-func send_shoot_event(tick: int, pid: int, weapon_number: int, shoot: Dictionary) -> void:
-	rpc("receive_shoot_event", tick, pid, weapon_number, shoot)
+func send_attack_event(tick: int, pid: int, weapon_number: int, attack: Dictionary) -> void:
+	rpc("receive_attack_event", tick, pid, weapon_number, attack)
 
 
-func send_melee_event(tick: int, pid: int):
-	rpc("receive_melee_event", tick, pid)
+func send_despawn_bullet_event(tick: int, bullet_id: int) -> void:
+	rpc("receive_despawn_bullet_event", tick, bullet_id)
 
 
 func send_ability_event(tick: int, pid: int):
@@ -78,12 +78,12 @@ func receive_snapshot(tick: int, snapshot: Dictionary) -> void:
 
 
 @rpc("authority", "reliable")
-func receive_shoot_event(tick: int, pid: int, weapon_number: int, shoot: Dictionary) -> void:
+func receive_attack_event(tick: int, pid: int, weapon_number: int, attack: Dictionary) -> void:
 	pass
 
 
 @rpc("authority", "reliable")
-func receive_melee_event(tick: int, pid: int):
+func receive_despawn_bullet_event(tick: int, bullet_id: int) -> void:
 	pass
 
 

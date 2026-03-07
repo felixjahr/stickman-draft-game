@@ -48,16 +48,17 @@ func _physics_process(delta: float) -> void:
 				"aim_direction_1" : player.aim_direction_1,
 				"aim_direction_2" : player.aim_direction_2,
 				"health" : player.health,
-			}
+				"attacking" : player.attacking,
+ 			}
 		net.send_snapshot(tick, snapshot)
 
 
-func send_shoot_event(pid: int, weapon_number: int, shoot: Dictionary) -> void:
-	net.send_shoot_event(tick, pid, weapon_number, shoot)
+func send_attack_event(pid: int, weapon_number: int, attack: Dictionary) -> void:
+	net.send_attack_event(tick, pid, weapon_number, attack)
 
 
-func send_melee_event(pid: int) -> void:
-	net.send_melee_event(tick, pid)
+func send_despawn_bullet_event(bullet_id: int) -> void:
+	net.send_despawn_bullet_event(tick, bullet_id)
 
 
 func send_ability_event(pid: int) -> void:

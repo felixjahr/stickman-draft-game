@@ -56,12 +56,13 @@ func _on_net_snapshot_received(tick: int, snapshot: Dictionary) -> void:
 		players[pid].animate_snapshot(snapshot[pid])
 
 
-func _on_net_shoot_event_received(tick: int, pid: int, weapon_number: int, shoot: Dictionary) -> void:
-	players[pid].animate_shoot_event(weapon_number, shoot)
+func _on_net_attack_event_received(tick: int, pid: int, weapon_number: int, attack: Dictionary) -> void:
+	players[pid].animate_attack_event(weapon_number, attack)
 
 
-func _on_net_melee_event_received(tick: int, pid: int) -> void:
-	players[pid].animate_melee_event()
+func _on_net_despawn_bullet_event_received(tick: int, bullet_id: int) -> void:
+	if has_node(str(bullet_id)):
+		get_node(str(bullet_id)).queue_free()
 
 
 func _on_net_ability_event_received(tick: int, pid: int) -> void:

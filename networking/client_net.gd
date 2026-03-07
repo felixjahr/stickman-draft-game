@@ -2,8 +2,8 @@ extends Node
 
 signal init_received(tick: int, pids: Array, map_id: String)
 signal snapshot_received(tick: int, snapshot: Dictionary)
-signal shoot_event_received(tick: int, pid: int, weapon_number: int, shoot: Dictionary)
-signal melee_event_received(tick: int, pid: int)
+signal attack_event_received(tick: int, pid: int, weapon_number: int, attack: Dictionary)
+signal despawn_bullet_event_received(tick: int, bullet_id: int)
 signal ability_event_received(tick: int, pid: int)
 signal hit_event_received(tick: int, pid: int)
 signal connect_peer_event_received(pid: int)
@@ -35,13 +35,13 @@ func receive_snapshot(tick: int, snapshot: Dictionary) -> void:
 
 
 @rpc("authority", "reliable")
-func receive_shoot_event(tick: int, pid: int, weapon_number: int, shoot: Dictionary) -> void:
-	emit_signal("shoot_event_received", tick, pid, weapon_number, shoot)
+func receive_attack_event(tick: int, pid: int, weapon_number: int, attack: Dictionary) -> void:
+	emit_signal("attack_event_received", tick, pid, weapon_number, attack)
 
 
 @rpc("authority", "reliable")
-func receive_melee_event(tick: int, pid: int):
-	emit_signal("melee_event_received", tick, pid)
+func receive_despawn_bullet_event(tick: int, bullet_id: int) -> void:
+	emit_signal("despawn_bullet_event_received", tick, bullet_id)
 
 
 @rpc("authority", "reliable")
