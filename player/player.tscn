@@ -1975,7 +1975,6 @@ show_percentage = false
 material = SubResource("ShaderMaterial_qjkh3")
 
 [node name="LeftShoulder" type="Node2D" parent="Sprite" unique_id=1130458107]
-visible = false
 use_parent_material = true
 position = Vector2(-3, -52)
 
@@ -2152,11 +2151,9 @@ scale = Vector2(0.9999996, 0.9999996)
 shape = SubResource("RectangleShape2D_qjkh3")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2014367572]
-visible = false
 shape = SubResource("CapsuleShape2D_yw30f")
 
 [node name="Hurtbox" type="Area2D" parent="." unique_id=1485402505]
-visible = false
 collision_layer = 2
 collision_mask = 0
 
