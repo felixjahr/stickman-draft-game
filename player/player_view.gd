@@ -1,23 +1,12 @@
 extends Node2D
 
-const ARMOUR := {
-	"light_armour" : preload("res://armour/light_armour/light_armour.tres"),
-	"heavy_armour" : preload("res://armour/heavy_armour/heavy_armour.tres"),
-}
-
-const WEAPONS := {
-	"gun" : preload("res://weapons/ranged/gun/gun.tres"),
-	"sword" : preload("res://weapons/melee/sword/sword.tres"),
-}
-
-const WEAPON_AMMUNITION_BAR := preload("res://weapons/weapon_ammunition_bar.tscn")
-const WEAPON_AMMUNITION_BAR_SEGMENT := preload("res://weapons/weapon_ammunition_bar_segment.tscn")
+const WEAPON_AMMUNITION_BAR := preload("res://player/weapon_ammunition_bar.tscn")
+const WEAPON_AMMUNITION_BAR_SEGMENT := preload("res://player/weapon_ammunition_bar_segment.tscn")
 
 var local := false
-
-var armour_id
-var weapon_ids: Array[String] = []
 var last_hit := -1
+var armour_id: String
+var weapon_ids: Array[String] = []
 
 var camera: Camera2D
 var weapon_sprites: Array[Sprite2D] = []
@@ -50,86 +39,124 @@ func apply_snapshot(snapshot: PlayerSnapshot) -> void:
 	global_position = snapshot.position
 	health_bar.value = snapshot.health
 	
+	_update_camera()
+	_update_hit_effect(snapshot)
+	_update_armour(snapshot)
+	_update_weapons(snapshot)
+	_update_weapon_visiblity(snapshot)
+	_update_ammunition_bars(snapshot)
+	_update_facing(snapshot)
+	_update_body_animation(snapshot)
+	_update_arm_animation(snapshot)
+
+
+func _update_camera() -> void:
 	if local:
 		camera.global_position = global_position
-	
+
+
+func _update_hit_effect(snapshot: PlayerSnapshot) -> void:
 	if not local and last_hit == -1:
 		last_hit = snapshot.last_hit
 	if snapshot.last_hit > last_hit:
 		last_hit = snapshot.last_hit
 		effect_player.play("hit")
+
+
+func _update_armour(snapshot: PlayerSnapshot) -> void:
+	if snapshot.armour_id == armour_id:
+		return
+	for armour_sprite in armour_sprites:
+		armour_sprite.texture = Data.ARMOUR[snapshot.armour_id].texture
+	armour_id = snapshot.armour_id
+
+
+func _update_weapons(snapshot: PlayerSnapshot) -> void:
+	if snapshot.weapon_ids == weapon_ids:
+		return
 	
-	if not snapshot.armour_id == armour_id:
-		for armour_sprite in armour_sprites:
-			armour_sprite.texture = ARMOUR[snapshot.armour_id].texture
-		armour_id = snapshot.armour_id
+	var target_count := snapshot.weapon_ids.size()
+	while weapon_ids.size() > target_count:
+		weapon_sprites.pop_back().queue_free()
+		weapon_ammunition_bars.pop_back().queue_free()
+		weapon_ids.pop_back()
+	if weapon_ids.size() < target_count:
+		weapon_sprites.resize(target_count)
+		weapon_ammunition_bars.resize(target_count)
+		weapon_ids.resize(target_count)
 	
-	
-	
-	if not snapshot.weapon_ids == weapon_ids:
-		var snapshot_weapon_count := snapshot.weapon_ids.size()
-		var weapon_count := weapon_ids.size()
+	for i in snapshot.weapon_ids.size():
+		var snapshot_weapon_id = snapshot.weapon_ids[i]
+		if snapshot_weapon_id == weapon_ids[i]:
+			continue
+		weapon_ids[i] = snapshot_weapon_id
 		
-		if snapshot_weapon_count < weapon_count:
-			for i in weapon_count - snapshot_weapon_count:
-				weapon_ammunition_bars.back().queue_free()
-				weapon_sprites.back().queue_free()
-		weapon_ids.resize(snapshot_weapon_count)
-		weapon_ammunition_bars.resize(snapshot_weapon_count)
-		weapon_sprites.resize(snapshot_weapon_count)
-		
-		for i in snapshot.weapon_ids.size():
-			var snapshot_weapon_id = snapshot.weapon_ids[i]
-			var weapon_id = weapon_ids[i]
-			
-			if not snapshot_weapon_id == weapon_id:
-				if weapon_sprites[i]:
-					weapon_sprites[i].queue_free()
-				var new_weapon_sprite = Sprite2D.new()
-				new_weapon_sprite.texture = WEAPONS[snapshot_weapon_id].sprite_texture
-				new_weapon_sprite.offset = WEAPONS[snapshot_weapon_id].sprite_offset
-				new_weapon_sprite.use_parent_material = true
-				weapon_pivot.add_child(new_weapon_sprite)
-				weapon_sprites[i] = new_weapon_sprite
-				weapon_ids[i] = snapshot_weapon_id
-				
-				if not weapon_ammunition_bars[i]:
-					var new_weapon_ammunition_bar = WEAPON_AMMUNITION_BAR.instantiate()
-					weapon_ammunition_bar_container.add_child(new_weapon_ammunition_bar)
-					weapon_ammunition_bars[i] = new_weapon_ammunition_bar
-				for weapon_ammunition_bar_segment in weapon_ammunition_bars[i].get_children():
-					weapon_ammunition_bar_segment.queue_free()
-				for j in WEAPONS[snapshot_weapon_id].max_ammunition:
-					var new_weapon_ammunition_bar_segment = WEAPON_AMMUNITION_BAR_SEGMENT.instantiate()
-					weapon_ammunition_bars[i].add_child(new_weapon_ammunition_bar_segment)
-	
+		var weapon := Data.WEAPONS[snapshot_weapon_id]
+		_setup_weapon_sprite(i, weapon)
+		_setup_ammunition_bar(i, weapon)
+
+
+func _setup_weapon_sprite(index: int, weapon: Weapon) -> void:
+	if weapon_sprites[index]:
+		weapon_sprites[index].queue_free()
+	var new_weapon_sprite = Sprite2D.new()
+	new_weapon_sprite.texture = weapon.sprite_texture
+	new_weapon_sprite.offset = weapon.sprite_offset
+	new_weapon_sprite.use_parent_material = true
+	weapon_pivot.add_child(new_weapon_sprite)
+	weapon_sprites[index] = new_weapon_sprite
+
+
+func _setup_ammunition_bar(index: int, weapon: Weapon) -> void:
+	if weapon_ammunition_bars[index]:
+		weapon_ammunition_bars[index].queue_free()
+	var new_weapon_ammunition_bar = WEAPON_AMMUNITION_BAR.instantiate()
+	weapon_ammunition_bar_container.add_child(new_weapon_ammunition_bar)
+	weapon_ammunition_bar_container.move_child(new_weapon_ammunition_bar, index)
+	weapon_ammunition_bars[index] = new_weapon_ammunition_bar
+	for j in weapon.max_ammunition:
+		var new_weapon_ammunition_bar_segment = WEAPON_AMMUNITION_BAR_SEGMENT.instantiate()
+		weapon_ammunition_bars[index].add_child(new_weapon_ammunition_bar_segment)
+
+
+func _update_weapon_visiblity(snapshot: PlayerSnapshot) -> void:
 	for weapon_sprite in weapon_sprites:
 		weapon_sprite.hide()
 	weapon_sprites[snapshot.current_weapon].show()
-	
+
+
+func _update_ammunition_bars(snapshot: PlayerSnapshot) -> void:
 	for i in snapshot.weapon_ammunitions.size():
-		for weapon_ammunition_bar_segment in weapon_ammunition_bars[i].get_children():
-			weapon_ammunition_bar_segment.value = 0
+		for segment in weapon_ammunition_bars[i].get_children():
+			segment.value = 0
 		for j in snapshot.weapon_ammunitions[i]:
 			weapon_ammunition_bars[i].get_child(j).value = 100
-	
+
+
+func _update_facing(snapshot: PlayerSnapshot) -> void:
+	sprite.scale.x = snapshot.facing
+
+
+func _update_body_animation(snapshot: PlayerSnapshot) -> void:
 	if not snapshot.is_on_floor:
 		body_player.play("jump")
 	elif snapshot.velocity.x != 0:
 		body_player.play("run")
 	else:
 		body_player.play("idle")
+
+
+func _update_arm_animation(snapshot: PlayerSnapshot) -> void:
+	var weapon := Data.WEAPONS[snapshot.weapon_ids[snapshot.current_weapon]]
 	
-	sprite.scale.x = snapshot.facing
-	
-	var weapon: Weapon = WEAPONS[snapshot.weapon_ids[snapshot.current_weapon]]
-	if not snapshot.attacking:
-		var weapon_aim_direction := snapshot.weapon_aim_directions[snapshot.current_weapon]
-		if not weapon_aim_direction == Vector2.ZERO:
-			right_shoulder.look_at(right_shoulder.global_position + weapon_aim_direction)
-			arm_player.play(weapon.aim_animation)
-		else:
-			right_shoulder.rotation = 0
-			arm_player.play(body_player.current_animation)
-	else:
+	if snapshot.attacking:
 		arm_player.play(weapon.attack_animation)
+		return
+	
+	var aim_direction := snapshot.weapon_aim_directions[snapshot.current_weapon]
+	if aim_direction != Vector2.ZERO:
+		right_shoulder.look_at(right_shoulder.global_position + aim_direction)
+		arm_player.play(weapon.aim_animation)
+	else:
+		right_shoulder.rotation = 0
+		arm_player.play(body_player.current_animation)

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Ranged" format=3 uid="uid://b5e6g4hpqxjio"]
+
+[ext_resource type="Script" uid="uid://dc58rhvdfubb2" path="res://data/weapons/ranged/ranged.gd" id="1_oynnu"]
+[ext_resource type="Texture2D" uid="uid://byayfmy01c4ub" path="res://data/weapons/ranged/rifle/rifle.png" id="2_lv3n4"]
+
+[resource]
+script = ExtResource("1_oynnu")
+bullet_speed = 3000
+bullet_damage = 5
+bullet_offset = Vector2(232, -21)
+bullet_amount = 5
+attack_duration = 0.2
+aim_animation = "aim_ranged"
+attack_animation = "attack_ranged"
+max_ammunition = 5
+reload_time = 1.0
+sprite_texture = ExtResource("2_lv3n4")
+sprite_offset = Vector2(46, -6)
+metadata/_custom_type_script = "uid://dc58rhvdfubb2"

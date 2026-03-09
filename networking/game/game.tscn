@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://bl6ni0fuvaabx"]
+
+[ext_resource type="Script" uid="uid://w80576hemwa3" path="res://networking/game/game_controller.gd" id="1_r7kaj"]
+[ext_resource type="Script" uid="uid://bq5rniobd6d38" path="res://networking/game/game_net.gd" id="2_m5ccc"]
+[ext_resource type="Script" uid="uid://cdt3x0t2axpjt" path="res://networking/game/game_simulation.gd" id="3_qyimw"]
+
+[node name="Controller" type="Node" unique_id=118878982]
+script = ExtResource("1_r7kaj")
+
+[node name="Net" type="Node" parent="." unique_id=1134371787]
+script = ExtResource("2_m5ccc")
+
+[node name="Game" type="Node" parent="." unique_id=690975222]
+script = ExtResource("3_qyimw")
+
+[node name="MapContainer" type="Node2D" parent="Game" unique_id=1263184711]
+
+[node name="PlayerContainer" type="Node2D" parent="Game" unique_id=1964723850]
+
+[node name="BulletContainer" type="Node2D" parent="Game" unique_id=985060407]
+
+[connection signal="input_received" from="Net" to="Game" method="_on_net_input_received"]
+[connection signal="peer_connected" from="Net" to="Game" method="_on_net_peer_connected"]
+[connection signal="peer_disconnected" from="Net" to="Game" method="_on_net_peer_disconnected"]

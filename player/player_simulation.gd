@@ -1,0 +1,207 @@
+extends CharacterBody2D
+
+const SPEED := 500.0
+const ACCELERATION := 1500.0
+const FRICTION := 1200.0
+const GRAVITY := 1500.0
+const JUMP_FORCE := -1200.0
+
+var health := 100
+var facing := 1
+var current_weapon := 0
+var attacking := false
+var armour_id := "light_armour"
+var weapon_ids: Array[String] = ["rifle", "gun"]
+var weapon_aim_directions: Array[Vector2] = []
+var weapon_ammunitions: Array[int] = []
+var last_hit := -1
+
+var reload_times_left: Array[float] = []
+var attack_time_left := 0.0
+var burst_time_left := 0.0
+var burst_weapon: Weapon
+var burst_aim_direction: Vector2
+var burst_bullet_amount: int
+
+@onready var game := get_parent().get_parent()
+@onready var pivot := $Pivot
+@onready var hitbox_collision_shape := $Pivot/Hitbox/CollisionShape2D
+
+
+func _ready() -> void:
+	for weapon_id in weapon_ids:
+		weapon_ammunitions.append(Data.WEAPONS[weapon_id].max_ammunition)
+		weapon_aim_directions.append(Vector2.ZERO)
+		reload_times_left.append(0.0)
+	hitbox_collision_shape.set_deferred("disabled", true)
+
+
+func tick(delta: float, input: PlayerInput) -> void:
+	_update_reload_times(delta)
+	_update_attack_time(delta)
+	_update_burst_time(delta)
+	
+	_apply_horizontal_movement(delta, input.direction)
+	_apply_vertical_movement(delta, input.jumping)
+	
+	if not attacking:
+		current_weapon = input.current_weapon
+		var weapon := Data.WEAPONS[weapon_ids[current_weapon]]
+		
+		var previous_aim_direction := weapon_aim_directions[current_weapon]
+		var aim_direction := input.weapon_aim_directions[current_weapon]
+		weapon_aim_directions = input.weapon_aim_directions
+		
+		if _should_start_attack(aim_direction, previous_aim_direction):
+			_start_attack(weapon, previous_aim_direction)
+		else:
+			_update_facing(weapon, aim_direction)
+	
+	move_and_slide()
+
+
+func apply_knockback(position: Vector2, knockback: float) -> void:
+	var knockback_multiplier := Data.ARMOUR[armour_id].knockback_multiplier
+	velocity = position.direction_to(global_position) * knockback * knockback_multiplier
+
+
+func apply_hit(damage: int) -> void:
+	var damage_multiplier := Data.ARMOUR[armour_id].damage_multiplier
+	health -= damage * damage_multiplier
+	last_hit = game.tick
+	if health <= 0:
+		pass # DIE
+
+
+func _update_reload_times(delta: float) -> void:
+	for i in reload_times_left.size():
+		if reload_times_left[i] <= 0.0:
+			continue
+		reload_times_left[i] -= delta
+		if reload_times_left[i] <= 0.0:
+			reload_times_left[i] = 0.0
+			var weapon := Data.WEAPONS[weapon_ids[i]]
+			if weapon_ammunitions[i] < weapon.max_ammunition:
+				weapon_ammunitions[i] += 1
+				if weapon_ammunitions[i] < weapon.max_ammunition:
+					reload_times_left[i] = weapon.reload_time
+
+
+func _update_attack_time(delta: float) -> void:
+	if attack_time_left <= 0.0:
+		return
+	attack_time_left -= delta
+	if attack_time_left <= 0.0:
+		attack_time_left = 0.0
+		attacking = false
+		hitbox_collision_shape.set_deferred("disabled", true)
+
+
+func _update_burst_time(delta: float) -> void:
+	if burst_time_left <= 0.0:
+		return
+	burst_time_left -= delta
+	if burst_time_left <= 0.0:
+		burst_time_left = 0.0
+		_fire_shot()
+
+
+func _apply_horizontal_movement(delta: float, direction: float) -> void:
+	if direction != 0:
+		var speed_multiplier := Data.ARMOUR[armour_id].speed_multiplier
+		velocity.x = move_toward(velocity.x, direction * SPEED * speed_multiplier, ACCELERATION * delta)
+	else:
+		velocity.x = move_toward(velocity.x, 0, FRICTION * delta)
+
+
+func _apply_vertical_movement(delta: float, jumping: bool) -> void:
+	if not is_on_floor():
+		velocity.y += GRAVITY * delta
+	elif jumping:
+		var jump_multiplier := Data.ARMOUR[armour_id].jump_multiplier
+		velocity.y = JUMP_FORCE
+
+
+func _should_start_attack(aim_direction: Vector2, previous_aim_direction: Vector2) -> bool:
+	return (
+		aim_direction == Vector2.ZERO 
+		and previous_aim_direction.length_squared() > 0.04 
+		and weapon_ammunitions[current_weapon] > 0
+	)
+
+
+func _start_attack(weapon: Weapon, aim_direction: Vector2) -> void:
+	weapon_ammunitions[current_weapon] -= 1
+	if reload_times_left[current_weapon] <= 0.0:
+		reload_times_left[current_weapon] = weapon.reload_time
+	
+	attacking = true
+	
+	if weapon is Ranged:
+		_start_ranged_attack(weapon, aim_direction, weapon.bullet_amount)
+	elif weapon is Melee:
+		_start_melee_attack(weapon, aim_direction)
+
+
+func _start_ranged_attack(weapon: Weapon, aim_direction: Vector2, bullet_amount: int) -> void:
+	attack_time_left = weapon.attack_duration * bullet_amount
+	burst_weapon = weapon
+	burst_aim_direction = aim_direction
+	burst_bullet_amount = bullet_amount
+	_fire_shot()
+
+
+func _fire_shot() -> void:
+	var offset: Vector2 = burst_weapon.bullet_offset
+	offset.y *= facing
+	var bullet_position: Vector2 = pivot.global_position + offset.rotated(burst_aim_direction.angle())
+	game.spawn_bullet(
+		bullet_position,
+		burst_weapon.bullet_speed,
+		burst_weapon.bullet_damage,
+		burst_weapon.self_hit,
+		burst_aim_direction.normalized(),
+		int(name),
+	)
+	burst_bullet_amount -= 1
+	if burst_bullet_amount > 0:
+		burst_time_left = burst_weapon.attack_duration
+
+
+func _start_melee_attack(weapon: Weapon, aim_direction: Vector2) -> void:
+	attack_time_left = weapon.attack_duration
+	pivot.rotation = aim_direction.angle()
+	hitbox_collision_shape.shape.size = weapon.hitbox_size
+	hitbox_collision_shape.position.x = weapon.hitbox_size.x / 2
+	hitbox_collision_shape.set_deferred("disabled", false)
+
+
+func _update_facing(weapon: Weapon, aim_direction: Vector2) -> void:
+	if weapon.moonwalk and aim_direction != Vector2.ZERO:
+		if aim_direction.x > 0:
+			facing = 1
+		else:
+			facing = -1
+	else:
+		if velocity.x > 0:
+			facing = 1
+		elif velocity.x < 0:
+			facing = -1
+
+
+func _on_hitbox_area_entered(area: Area2D) -> void:
+	if not attacking:
+		return
+	var weapon := Data.WEAPONS[weapon_ids[current_weapon]]
+	if not weapon.self_hit and area.get_parent() == self:
+		return
+	area.get_parent().apply_hit(weapon.damage)
+	area.get_parent().apply_knockback(pivot.global_position, weapon.knockback)
+
+
+func _on_reload_timeout(weapon_idx: int) -> void:
+	var weapon := Data.WEAPONS[weapon_ids[weapon_idx]]
+	if weapon_ammunitions[weapon_idx] < weapon.max_ammunition:
+		weapon_ammunitions[weapon_idx] += 1
+	if weapon_ammunitions[weapon_idx] < weapon.max_ammunition:
+		get_tree().create_timer(weapon.reload_time).timeout.connect(_on_reload_timeout.bind(weapon_idx))

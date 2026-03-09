@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Melee" format=3 uid="uid://bewuouv5mfi1c"]
+
+[ext_resource type="Script" uid="uid://dma0ut8h4lfxi" path="res://data/weapons/melee/melee.gd" id="1_snomb"]
+[ext_resource type="Texture2D" uid="uid://efee1sm5v48p" path="res://data/weapons/melee/spear/spear.png" id="2_fpadv"]
+
+[resource]
+script = ExtResource("1_snomb")
+knockback = 2000
+hitbox_size = Vector2(250, 120)
+moonwalk = true
+attack_duration = 0.3
+aim_animation = "aim_spear"
+attack_animation = "attack_spear"
+max_ammunition = 1
+reload_time = 1.0
+sprite_texture = ExtResource("2_fpadv")
+sprite_offset = Vector2(0, -40)
+metadata/_custom_type_script = "uid://dma0ut8h4lfxi"
