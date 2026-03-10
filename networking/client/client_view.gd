@@ -18,8 +18,9 @@ var snapshots: Array[Snapshot]
 var inputs: Array[PlayerInput]
 
 var overlay: Control
+var map
 
-@onready var net := $"../Net"
+@onready var net := $"../../Net"
 @onready var map_container := $MapContainer
 @onready var remote_player_container := $RemotePlayerContainer
 @onready var local_player_container := $LocalPlayerContainer
@@ -32,8 +33,20 @@ func _ready() -> void:
 	set_physics_process(false)
 
 
-func start_match() -> void:
-	net.start_match()
+func spawn_map(map_id: String) -> void:
+	var new_map := Data.MAPS[map_id].instantiate()
+	map_container.add_child(new_map)
+	map = new_map
+
+
+func spawn_local_player() -> void:
+	var local_pid := multiplayer.get_unique_id()
+	var new_player := PlayerView.instantiate()
+	new_player.name = str(local_pid)
+	new_player.local = true
+	new_player.camera = map.camera
+	local_player_container.add_child(new_player)
+	players[local_pid] = new_player
 
 
 func _physics_process(delta: float) -> void:
@@ -95,19 +108,3 @@ func _apply_entity_snapshots(entities: Dictionary, entity_snapshots: Array, get_
 	for entity_snapshot in entity_snapshots:
 		var id: int = get_id.call(entity_snapshot)
 		entities[id].apply_snapshot(entity_snapshot)
-
-
-func _on_net_init_received(init: Init) -> void:
-	var new_map := Data.MAPS[init.map_id].instantiate()
-	map_container.add_child(new_map)
-	
-	var local_pid := multiplayer.get_unique_id()
-	var new_player := PlayerView.instantiate()
-	new_player.name = str(local_pid)
-	new_player.local = true
-	new_player.camera = new_map.camera
-	local_player_container.add_child(new_player)
-	players[local_pid] = new_player
-	
-	estimated_server_tick = init.tick
-	set_physics_process(true)

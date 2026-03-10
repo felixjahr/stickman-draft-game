@@ -8,7 +8,6 @@ const PlayerSimulation := preload("res://player/player_simulation.tscn")
 const BulletSimulation := preload("res://bullet/bullet_simulation.tscn")
 
 var tick := 0
-var map_id := "forest"
 
 var bullet_counter := 0
 
@@ -17,16 +16,10 @@ var bullets: Dictionary[int, Node2D] = {}
 
 var inputs: Dictionary[int, Array] = {}
 
-@onready var net := $"../Net"
+@onready var net := $"../../Net"
 @onready var map_container := $MapContainer
 @onready var player_container := $PlayerContainer
 @onready var bullet_container := $BulletContainer
-
-
-func start_match() -> void:
-	var new_map := Data.MAPS[map_id].instantiate()
-	map_container.add_child(new_map)
-	net.start_match()
 
 
 func _physics_process(delta: float) -> void:
@@ -37,6 +30,23 @@ func _physics_process(delta: float) -> void:
 	
 	if tick % SNAPSHOT_FREQUENCY == 0:
 		net.send_snapshot(_build_snapshot())
+
+
+func spawn_map(map_id: String) -> void:
+	var new_map := Data.MAPS[map_id].instantiate()
+	map_container.add_child(new_map)
+
+
+func spawn_player(pid: int, weapon_ids: Array[String], armour_id: String) -> void:
+	var new_player := PlayerSimulation.instantiate()
+	new_player.name = str(pid)
+	new_player.weapon_ids = weapon_ids
+	new_player.armour_id = armour_id
+	player_container.add_child(new_player)
+	players[pid] = new_player
+	var input_buffer: Array[PlayerInput] = []
+	input_buffer.resize(INPUT_BUFFER_SIZE)
+	inputs[pid] = input_buffer
 
 
 func spawn_bullet(position: Vector2, speed: int, damage: int, self_hit: bool, direction: Vector2, pid: int) -> void:
@@ -132,19 +142,19 @@ func _on_net_input_received(pid: int, input: PlayerInput) -> void:
 	inputs[pid][input.tick % INPUT_BUFFER_SIZE] = input
 
 
-func _on_net_peer_connected(pid: int) -> void:
-	var new_player := PlayerSimulation.instantiate()
-	new_player.name = str(pid)
-	player_container.add_child(new_player)
-	players[pid] = new_player
-	var input_buffer: Array[PlayerInput] = []
-	input_buffer.resize(INPUT_BUFFER_SIZE)
-	inputs[pid] = input_buffer
-	
-	var init := Init.new()
-	init.tick = tick
-	init.map_id = map_id
-	net.send_init(pid, init)
+#func _on_net_peer_connected(pid: int) -> void:
+	#var new_player := PlayerSimulation.instantiate()
+	#new_player.name = str(pid)
+	#player_container.add_child(new_player)
+	#players[pid] = new_player
+	#var input_buffer: Array[PlayerInput] = []
+	#input_buffer.resize(INPUT_BUFFER_SIZE)
+	#inputs[pid] = input_buffer
+	#
+	#var init := Init.new()
+	#init.tick = tick
+	#init.map_id = map_id
+	#net.send_init(pid, init)
 
 
 func _on_net_peer_disconnected(pid: int) -> void:

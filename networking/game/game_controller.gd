@@ -1,7 +1,9 @@
 extends Node
 
-@onready var game := $Game
+@onready var net := $Net
+@onready var draft := $Draft
 
 
 func _ready() -> void:
-	game.start_match()
+	net.create_server()
+	
