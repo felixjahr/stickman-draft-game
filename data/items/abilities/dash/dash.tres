@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="Ability" format=3 uid="uid://cnxeb7c7ee6mo"]
+
+[ext_resource type="Script" uid="uid://b84f4diln7ur8" path="res://data/items/abilities/ability.gd" id="1_2xgbs"]
+[ext_resource type="Texture2D" uid="uid://dyuhrplnew3me" path="res://data/items/abilities/dash/dash_card.png" id="1_iglbj"]
+
+[resource]
+script = ExtResource("1_2xgbs")
+card_texture = ExtResource("1_iglbj")
+metadata/_custom_type_script = "uid://b84f4diln7ur8"

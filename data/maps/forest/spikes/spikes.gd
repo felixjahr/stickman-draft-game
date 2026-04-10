@@ -9,7 +9,7 @@ extends StaticBody2D
 
 
 func _ready() -> void:
-	if not OS.has_feature("match"):
+	if not OS.has_feature("server"):
 		hitbox.queue_free()
 		collision_shape.queue_free()
 

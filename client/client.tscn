@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://mrx73yralrmc"]
+
+[ext_resource type="Script" uid="uid://cey8cauvutinj" path="res://client/controller_client.gd" id="1_ti1oh"]
+[ext_resource type="Script" uid="uid://dgtky3frf4ijs" path="res://client/net_client.gd" id="2_gdxsl"]
+
+[node name="Controller" type="Node" unique_id=63357991]
+script = ExtResource("1_ti1oh")
+
+[node name="Net" type="Node" parent="." unique_id=1471941793]
+script = ExtResource("2_gdxsl")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=978794642]

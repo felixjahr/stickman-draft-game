@@ -2,9 +2,9 @@ extends Node
 
 
 func _ready() -> void:
-	if OS.has_feature("match"):
-		get_tree().call_deferred("change_scene_to_file", "res://networking/game/game.tscn")
+	if OS.has_feature("server"):
+		get_tree().call_deferred("change_scene_to_file", "res://server/server.tscn")
 	elif OS.has_feature("lobby"):
-		get_tree().call_deferred("change_scene_to_file", "res://networking/lobby/lobby.tscn")
+		get_tree().call_deferred("change_scene_to_file", "res://lobby/lobby.tscn")
 	else:
-		get_tree().call_deferred("change_scene_to_file", "res://networking/client/client.tscn")
+		get_tree().call_deferred("change_scene_to_file", "res://client/client.tscn")
