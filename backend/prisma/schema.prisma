@@ -1,0 +1,28 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Player {
+  id        String   @id
+  createdAt DateTime @default(now())
+  sessions  Session[]
+}
+
+model Session {
+  id                 String    @id
+  playerId           String
+  refreshTokenHash   String    @unique
+  createdAt          DateTime  @default(now())
+  player Player @relation(fields: [playerId], references: [id])
+}

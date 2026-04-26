@@ -3,7 +3,8 @@ extends RefCounted
 
 enum Type {
 	DRAFT_OPTIONS,
-	DRAFT_FINISHED
+	DRAFT_FINISHED,
+	DRAFT_GAMEOVER,
 }
 
 var type: Type

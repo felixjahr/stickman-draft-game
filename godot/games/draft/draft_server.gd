@@ -1,20 +1,23 @@
 extends Node
 
-enum DraftState {
+signal ended
+
+enum GameState {
 	DRAFT,
 	FIGHT,
+	GAMEOVER,
 }
 
-var state: DraftState
+var state: GameState
 
-var game_id: String
 var map_id: String
-var game_net: Node
 
 var draft_pool: Array[Dictionary]
-var draft_options_by_pid: Dictionary[int, Array] = {}
+var draft_options_by_player_id: Dictionary[String, Array] = {}
 var draft_results := {}
 
+@onready var backend_net := $"../Net/BackendNet"
+@onready var game_net := $"../Net/GameNet"
 @onready var logic := $Logic
 
 
@@ -22,26 +25,50 @@ func _ready() -> void:
 	logic.spawn_map(map_id)
 	game_net.connect("input_received", logic._on_net_input_received)
 	game_net.connect("game_request_received", _on_net_game_request_received)
-	game_net.connect("peer_connected", _on_net_peer_connected)
-	_enter_state(DraftState.DRAFT)
+	game_net.connect("player_received", _on_net_player_received)
+	_enter_state(GameState.DRAFT)
 
 
-func _change_state(new_state: DraftState) -> void:
+func _on_net_player_received(player_id: String) -> void:
+	var draft_options: Array[Dictionary] = []
+	draft_options.append(draft_pool.pop_back())
+	draft_options.append(draft_pool.pop_back())
+	draft_options_by_player_id[player_id] = draft_options
+	
+	var new_game_event := GameEvent.new()
+	new_game_event.type = GameEvent.Type.DRAFT_OPTIONS
+	new_game_event.payload = draft_options
+	game_net.send_game_event(player_id, new_game_event)
+
+
+func gameover(ranking: Array[String]) -> void:
+	_change_state(GameState.GAMEOVER, ranking)
+
+
+func _change_state(new_state: GameState, data = null) -> void:
 	if new_state == state:
 		return
-	_exit_state(new_state)
-	_enter_state(new_state)
+	_exit_state(new_state, data)
+	_enter_state(new_state, data)
 	state = new_state
 
 
-func _enter_state(new_state: DraftState) -> void:
-	if new_state == DraftState.DRAFT:
+func _enter_state(new_state: GameState, data = null) -> void:
+	if new_state == GameState.DRAFT:
 		draft_pool = _generate_draft_pool()
-	elif new_state == DraftState.FIGHT:
+	elif new_state == GameState.FIGHT:
 		_resolve_draft_results()
+	elif new_state == GameState.GAMEOVER:
+		logic.stop()
+		var new_game_event = GameEvent.new()
+		new_game_event.type = GameEvent.Type.DRAFT_GAMEOVER
+		new_game_event.payload = data
+		for player_id in logic.players.keys():
+			game_net.send_game_event(player_id, new_game_event)
+		emit_signal("ended")
 
 
-func _exit_state(new_state: DraftState) -> void:
+func _exit_state(new_state: GameState, data = null) -> void:
 	pass
 
 
@@ -77,27 +104,27 @@ func _generate_draft_pool() -> Array[Dictionary]:
 
 
 func _resolve_draft_results() -> void:
-	var pids := draft_results.keys()
-	var pid_a: int = pids[0]
-	var pid_b: int = pids[1]
+	var player_ids := draft_results.keys()
+	var player_id_a: String = player_ids[0]
+	var player_id_b: String = player_ids[1]
 	
-	var loadouts: Dictionary[int, Dictionary] = {
-		pid_a: {
+	var loadouts: Dictionary[String, Dictionary] = {
+		player_id_a: {
 			"weapon_ids": [] as Array[String],
 			"armour_id": "",
 			"ability_ids": [] as Array[String],
 		},
-		pid_b: {
+		player_id_b: {
 			"weapon_ids": [] as Array[String],
 			"armour_id": "",
 			"ability_ids": [] as Array[String],
 		},
 	}
 	
-	for pid in pids:
-		var other_pid := pid_b if pid == pid_a else pid_a
-		var draft_options = draft_options_by_pid[pid]
-		var draft_result = draft_results[pid]
+	for player_id in player_ids:
+		var other_player_id := player_id_b if player_id == player_id_a else player_id_a
+		var draft_options = draft_options_by_player_id[player_id]
+		var draft_result = draft_results[player_id]
 		
 		for pick in draft_result:
 			if pick < 0 or pick > 1:
@@ -108,44 +135,28 @@ func _resolve_draft_results() -> void:
 			var option_ids = draft_option["option_ids"]
 			match category_id:
 				"weapon":
-					loadouts[pid]["weapon_ids"].append(option_ids[pick])
-					loadouts[other_pid]["weapon_ids"].append(option_ids[other_pick])
+					loadouts[player_id]["weapon_ids"].append(option_ids[pick])
+					loadouts[other_player_id]["weapon_ids"].append(option_ids[other_pick])
 				"armour":
-					loadouts[pid]["armour_id"] = option_ids[pick]
-					loadouts[other_pid]["armour_id"] = option_ids[other_pick]
+					loadouts[player_id]["armour_id"] = option_ids[pick]
+					loadouts[other_player_id]["armour_id"] = option_ids[other_pick]
 				"ability":
-					loadouts[pid]["ability_ids"].append(option_ids[pick])
-					loadouts[other_pid]["ability_ids"].append(option_ids[other_pick])
+					loadouts[player_id]["ability_ids"].append(option_ids[pick])
+					loadouts[other_player_id]["ability_ids"].append(option_ids[other_pick])
 	
-	for pid in pids:
-		logic.spawn_player(pid, loadouts[pid]["weapon_ids"], loadouts[pid]["armour_id"])
+	for player_id in player_ids:
+		logic.spawn_player(player_id, loadouts[player_id]["weapon_ids"], loadouts[player_id]["armour_id"])
+		logic.start()
 		var new_game_event := GameEvent.new()
 		new_game_event.type = GameEvent.Type.DRAFT_FINISHED
-		game_net.send_game_event(pid, new_game_event)
+		game_net.send_game_event(player_id, new_game_event)
 
 
-func _on_net_game_request_received(pid: int, game_request: GameRequest) -> void:
+func _on_net_game_request_received(player_id: String, game_request: GameRequest) -> void:
 	if game_request.type != GameRequest.Type.DRAFT_RESULT:
 		return
 	
-	draft_results[pid] = game_request.payload
+	draft_results[player_id] = game_request.payload
 	
 	if draft_results.size() == 2:
-		_change_state(DraftState.FIGHT)
-
-
-func _on_net_peer_connected(pid: int) -> void:
-	var new_init := Init.new()
-	new_init.game_id = game_id
-	new_init.map_id = map_id
-	game_net.send_init(pid, new_init)
-	
-	var draft_options: Array[Dictionary] = []
-	draft_options.append(draft_pool.pop_back())
-	draft_options.append(draft_pool.pop_back())
-	draft_options_by_pid[pid] = draft_options
-	
-	var new_game_event := GameEvent.new()
-	new_game_event.type = GameEvent.Type.DRAFT_OPTIONS
-	new_game_event.payload = draft_options
-	game_net.send_game_event(pid, new_game_event)
+		_change_state(GameState.FIGHT)

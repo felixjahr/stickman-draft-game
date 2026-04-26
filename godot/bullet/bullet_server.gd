@@ -5,8 +5,8 @@ var damage: int
 var self_hit: bool
 
 var direction: Vector2
-var pid: int
-var bullet_id: int
+var player_id: String
+var bullet_id: String
 
 @onready var hitbox := $Hitbox
 @onready var arena := $Arena
@@ -21,7 +21,7 @@ func tick(delta: float) -> void:
 
 
 func _on_hitbox_area_entered(area: Area2D) -> void:
-	if not self_hit and area.get_parent().pid == pid:
+	if not self_hit and area.get_parent().player_id == player_id:
 		return
 	area.get_parent().apply_hit(damage)
 	get_parent().get_parent().despawn_bullet(bullet_id)

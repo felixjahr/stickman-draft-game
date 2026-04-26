@@ -6,4 +6,5 @@ export interface Room {
   status: 'waiting' | 'starting' | 'ready' | 'failed';
   port?: number;
   ip?: string;
+  gameTokens?: Record<string, string>;
 }

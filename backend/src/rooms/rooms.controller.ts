@@ -1,39 +1,35 @@
-import {
-  BadRequestException,
-  Controller,
-  Headers,
-  Param,
-  Post,
-} from '@nestjs/common';
+import { Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { RoomsService } from './rooms.service';
+import { AuthGuard } from '../auth/auth.guard';
+
+type AuthenticatedRequest = Request & {
+  playerId: string;
+  sessionId: string;
+};
 
 @Controller('rooms')
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
   @Post('create')
-  createRoom(@Headers('x-session-id') sessionId?: string) {
-    if (!sessionId) {
-      throw new BadRequestException('Missing x-session-id header');
-    }
-
-    return this.roomsService.createRoom(sessionId);
+  @UseGuards(AuthGuard)
+  createRoom(@Req() req: AuthenticatedRequest) {
+    return this.roomsService.createRoom(req.playerId);
   }
 
   @Post('join/:code')
-  joinRoom(
-    @Param('code') code: string,
-    @Headers('x-session-id') sessionId?: string,
-  ) {
-    if (!sessionId) {
-      throw new BadRequestException('Missing x-session-id header');
-    }
-
-    this.roomsService.joinRoom(code, sessionId);
+  @UseGuards(AuthGuard)
+  joinRoom(@Param('code') code: string, @Req() req: AuthenticatedRequest) {
+    this.roomsService.joinRoom(code, req.playerId);
   }
 
   @Post('start/:code')
   startRoom(@Param('code') code: string) {
     this.roomsService.startRoom(code);
+  }
+
+  @Post('end/:code')
+  endRoom(@Param('code') code: string) {
+    this.roomsService.endRoom(code);
   }
 }

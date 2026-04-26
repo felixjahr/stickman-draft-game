@@ -4,8 +4,8 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { randomUUID } from 'crypto';
 import type { Server, WebSocket } from 'ws';
+import { AuthService } from '../auth/auth.service';
 
 @WebSocketGateway({
   path: '/ws',
@@ -14,43 +14,72 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  private readonly sessions = new Map<string, WebSocket>();
-  private readonly socketToSession = new Map<WebSocket, string>();
+  private readonly playerSockets = new Map<string, WebSocket>();
+  private readonly socketPlayers = new Map<WebSocket, string>();
+
+  constructor(private readonly authService: AuthService) {}
 
   handleConnection(client: WebSocket): void {
-    const sessionId = randomUUID();
+    client.on('message', async (raw) => {
+      try {
+        const text = raw.toString();
+        const msg = JSON.parse(text);
 
-    this.sessions.set(sessionId, client);
-    this.socketToSession.set(client, sessionId);
+        if (msg?.event !== 'auth') {
+          return;
+        }
 
-    client.send(
-      JSON.stringify({
-        event: 'session',
-        data: { sessionId },
-      }),
-    );
+        const accessToken = msg?.data?.accessToken;
+        if (!accessToken) {
+          client.close();
+          return;
+        }
+
+        const payload = await this.authService.verifyAccessToken(accessToken);
+        const playerId = payload.sub;
+
+        this.playerSockets.set(playerId, client);
+        this.socketPlayers.set(client, playerId);
+
+        client.send(
+          JSON.stringify({
+            event: 'authOk',
+            data: {
+              playerId,
+            },
+          }),
+        );
+      } catch {
+        client.close();
+      }
+    });
   }
 
   handleDisconnect(client: WebSocket): void {
-    const sessionId = this.socketToSession.get(client);
-    if (!sessionId) return;
+    const playerId = this.socketPlayers.get(client);
+    if (!playerId) return;
 
-    this.socketToSession.delete(client);
-    this.sessions.delete(sessionId);
+    this.socketPlayers.delete(client);
+    this.playerSockets.delete(playerId);
   }
 
-  hasSession(sessionId: string): boolean {
-    return this.sessions.has(sessionId);
+  hasPlayer(playerId: string): boolean {
+    return this.playerSockets.has(playerId);
   }
 
-  sendRoomStart(sessionId: string, ip: string, port: number): void {
-    const socket = this.sessions.get(sessionId);
+  sendRoomStart(
+    playerId: string,
+    ip: string,
+    port: number,
+    gameToken: string,
+  ): void {
+    const socket = this.playerSockets.get(playerId);
     if (!socket || socket.readyState !== socket.OPEN) return;
 
     socket.send(
       JSON.stringify({
         event: 'receiveRoomStart',
-        data: { ip, port },
+        data: { ip, port, gameToken },
       }),
     );
   }

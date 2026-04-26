@@ -1,21 +1,25 @@
 extends Node
 
-const DraftScreen = preload("res://hud/draft_screen/draft_screen.tscn")
-const Overlay := preload("res://hud/overlay/overlay.tscn")
+signal ended
+
+const DraftScreen = preload("res://ui/draft_screen/draft_screen.tscn")
+const Overlay := preload("res://ui/overlay/overlay.tscn")
+const Gameover := preload("res://ui/gameover/gameover.tscn")
 
 enum DraftState {
 	DRAFT,
 	FIGHT,
+	GAMEOVER,
 }
 
 var state: DraftState
 
 var map_id: String
-var game_net: Node
 
 var draft_screen: Control
 
-@onready var hud := $Hud
+@onready var ui := $"../UI"
+@onready var game_net := $"../Net/GameNet"
 @onready var logic := $Logic
 
 
@@ -38,19 +42,33 @@ func _enter_state(new_state: DraftState, data = null) -> void:
 		var new_draft_screen = DraftScreen.instantiate()
 		new_draft_screen.connect("draft_finished", _on_draft_screen_draft_finished)
 		new_draft_screen.draft_options = data
-		hud.add_child(new_draft_screen)
+		ui.add_child(new_draft_screen)
 		draft_screen = new_draft_screen
 	elif new_state == DraftState.FIGHT:
 		var new_overlay = Overlay.instantiate()
 		logic.overlay = new_overlay
-		hud.add_child(new_overlay)
-		logic.spawn_local_player()
-		logic.set_physics_process(true)
+		ui.add_child(new_overlay)
+		logic.start()
+	elif new_state == DraftState.GAMEOVER:
+		logic.stop()
+		var new_gameover = Gameover.instantiate()
+		new_gameover.ranking = data
+		ui.add_child(new_gameover)
+		new_gameover.continue_button.connect("pressed", _on_gameover_continue_pressed)
 
 
 func _exit_state(new_state: DraftState, data = null) -> void:
-	for child in hud.get_children():
+	for child in ui.get_children():
 		child.queue_free()
+
+
+func _on_net_game_event_received(game_event: GameEvent) -> void:
+	if game_event.type == GameEvent.Type.DRAFT_OPTIONS:
+		_enter_state(DraftState.DRAFT, game_event.payload)
+	elif game_event.type == GameEvent.Type.DRAFT_FINISHED:
+		_change_state(DraftState.FIGHT)
+	elif game_event.type == GameEvent.Type.DRAFT_GAMEOVER:
+		_change_state(DraftState.GAMEOVER, game_event.payload)
 
 
 func _on_draft_screen_draft_finished(draft_result: Array[int]) -> void:
@@ -60,8 +78,5 @@ func _on_draft_screen_draft_finished(draft_result: Array[int]) -> void:
 	game_net.send_game_request(new_game_request)
 
 
-func _on_net_game_event_received(game_event: GameEvent) -> void:
-	if game_event.type == GameEvent.Type.DRAFT_OPTIONS:
-		_enter_state(DraftState.DRAFT, game_event.payload)
-	elif game_event.type == GameEvent.Type.DRAFT_FINISHED:
-		_change_state(DraftState.FIGHT)
+func _on_gameover_continue_pressed() -> void:
+	emit_signal("ended")

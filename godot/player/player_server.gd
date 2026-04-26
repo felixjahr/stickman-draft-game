@@ -6,9 +6,9 @@ const FRICTION := 1200.0
 const GRAVITY := 1500.0
 const JUMP_FORCE := -1200.0
 
-var pid: int
+var player_id: String
 var health := 100
-var hearts := 3
+var hearts := 1
 var facing := 1
 var current_weapon := 0
 var attacking := false
@@ -72,7 +72,11 @@ func apply_hit(damage: int) -> void:
 	health -= damage * damage_multiplier
 	last_hit = logic.tick
 	if health <= 0:
-		logic.call_deferred("spawn_player", pid, weapon_ids, armour_id, hearts - 1)
+		hearts -= 1
+		if hearts <= 0:
+			logic.gameover()
+			return
+		logic.call_deferred("spawn_player", player_id, weapon_ids, armour_id, hearts)
 		queue_free()
 
 
@@ -164,7 +168,7 @@ func _fire_shot() -> void:
 		burst_weapon.bullet_damage,
 		burst_weapon.self_hit,
 		burst_aim_direction.normalized(),
-		pid,
+		player_id,
 	)
 	burst_bullet_amount -= 1
 	if burst_bullet_amount > 0:

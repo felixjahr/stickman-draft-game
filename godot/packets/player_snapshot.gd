@@ -1,7 +1,7 @@
 class_name PlayerSnapshot
 extends RefCounted
 
-var pid: int
+var player_id: String
 
 var position: Vector2
 var velocity: Vector2
@@ -20,7 +20,7 @@ var last_hit: int
 
 func to_dict() -> Dictionary:
 	return {
-		"pid": pid,
+		"player_id": player_id,
 		"position": position,
 		"velocity": velocity,
 		"health": health,
@@ -39,7 +39,7 @@ func to_dict() -> Dictionary:
 
 static func from_dict(data: Dictionary) -> PlayerSnapshot:
 	var snapshot := PlayerSnapshot.new()
-	snapshot.pid = data["pid"]
+	snapshot.player_id = data["player_id"]
 	snapshot.position = data["position"]
 	snapshot.velocity = data["velocity"]
 	snapshot.health = data["health"]

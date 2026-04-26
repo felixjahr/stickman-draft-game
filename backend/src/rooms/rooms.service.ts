@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { spawn } from 'child_process';
-import { randomInt } from 'crypto';
+import { randomBytes, createHash, randomInt } from 'crypto';
 import { RoomsGateway } from './rooms.gateway';
 import { Room } from './room.types';
 
@@ -21,9 +21,9 @@ export class RoomsService {
 
   constructor(private readonly roomsGateway: RoomsGateway) {}
 
-  createRoom(sessionId: string): { code: string } {
-    if (!this.roomsGateway.hasSession(sessionId)) {
-      throw new BadRequestException('Invalid session');
+  createRoom(playerId: string): { code: string } {
+    if (!this.roomsGateway.hasPlayer(playerId)) {
+      throw new BadRequestException('Player websocket not connected');
     }
 
     const code = this.generateRoomCode();
@@ -32,7 +32,7 @@ export class RoomsService {
       code,
       gameId: 'draft',
       mapId: this.pickRandomMap(),
-      members: [sessionId],
+      members: [playerId],
       status: 'waiting',
     };
 
@@ -41,9 +41,9 @@ export class RoomsService {
     return { code };
   }
 
-  joinRoom(code: string, sessionId: string): void {
-    if (!this.roomsGateway.hasSession(sessionId)) {
-      throw new BadRequestException('Invalid session');
+  joinRoom(code: string, playerId: string): void {
+    if (!this.roomsGateway.hasPlayer(playerId)) {
+      throw new BadRequestException('Player websocket not connected');
     }
 
     const room = this.rooms.get(code);
@@ -51,15 +51,19 @@ export class RoomsService {
       throw new NotFoundException('Room not found');
     }
 
-    if (!(room.status === 'waiting')) {
+    if (room.status !== 'waiting') {
       throw new BadRequestException('Room already started');
+    }
+
+    if (room.members.includes(playerId)) {
+      throw new BadRequestException('Player already in room');
     }
 
     if (room.members.length >= ROOM_SIZE) {
       throw new BadRequestException('Room is full');
     }
 
-    room.members.push(sessionId);
+    room.members.push(playerId);
 
     if (room.members.length === ROOM_SIZE) {
       this.startServer(room);
@@ -71,15 +75,30 @@ export class RoomsService {
     if (!room) {
       throw new NotFoundException('Room not found');
     }
+
     if (!room.ip || !room.port) {
       throw new BadRequestException('Room has no allocated endpoint');
     }
 
     room.status = 'ready';
 
-    for (const sessionId of room.members) {
-      this.roomsGateway.sendRoomStart(sessionId, room.ip, room.port);
+    for (const playerId of room.members) {
+      const gameToken = room.gameTokens![playerId];
+      this.roomsGateway.sendRoomStart(playerId, room.ip, room.port, gameToken);
     }
+  }
+
+  endRoom(code: string): void {
+    const room = this.rooms.get(code);
+    if (!room) {
+      throw new NotFoundException('Room not found');
+    }
+
+    spawn(SERVER_PATH, ['stop', room.code], {
+      stdio: 'inherit',
+    });
+
+    this.rooms.delete(code);
   }
 
   private startServer(room: Room): void {
@@ -87,8 +106,20 @@ export class RoomsService {
     room.port = this.allocatePort();
     room.ip = GAME_IP;
 
+    const gameTokens: Record<string, string> = {};
+    const allowedPlayers: Record<string, string> = {};
+    for (const playerId of room.members) {
+      const gameToken = randomBytes(32).toString('base64url');
+      gameTokens[playerId] = gameToken;
+      const gameTokenHash = createHash('sha256').update(gameToken).digest('hex');
+      allowedPlayers[gameTokenHash] = playerId;
+    }
+    room.gameTokens = gameTokens;
+
     const args = [
       'run',
+      '--name',
+      room.code,
       '--platform',
       'linux/amd64',
       '-p',
@@ -102,6 +133,7 @@ export class RoomsService {
       `code=${room.code}`,
       `game_id=${room.gameId}`,
       `map_id=${room.mapId}`,
+      `allowed_players=${JSON.stringify(allowedPlayers)}`,
     ];
 
     spawn(SERVER_PATH, args, { stdio: 'inherit' });
@@ -112,14 +144,17 @@ export class RoomsService {
     this.nextGamePort =
       GAME_BASE_PORT +
       ((this.nextGamePort - GAME_BASE_PORT + 1) % GAME_PORT_RANGE_SIZE);
+
     return port;
   }
 
   private generateRoomCode(): string {
     let code = '';
+
     do {
       code = randomInt(0, 10000).toString().padStart(4, '0');
     } while (this.rooms.has(code));
+
     return code;
   }
 

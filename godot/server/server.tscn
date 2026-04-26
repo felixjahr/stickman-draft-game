@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://bl6ni0fuvaabx"]
 
 [ext_resource type="Script" uid="uid://w80576hemwa3" path="res://server/server_controller.gd" id="1_adogo"]
-[ext_resource type="Script" uid="uid://0jlbavtma8xd" path="res://backend/server_backend_net.gd" id="2_0wvpq"]
-[ext_resource type="Script" uid="uid://dbadsd2pwibq5" path="res://games/game_net.gd" id="3_u3pyk"]
+[ext_resource type="Script" uid="uid://0jlbavtma8xd" path="res://server/server_backend_net.gd" id="2_0wvpq"]
+[ext_resource type="Script" uid="uid://bcx8eqltfsntt" path="res://server/server_game_net.gd" id="3_u3pyk"]
 
 [node name="Controller" type="Node" unique_id=118878982]
 script = ExtResource("1_adogo")
