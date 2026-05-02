@@ -10,7 +10,7 @@ import { Room } from './room.types';
 import { ConfigService } from '@nestjs/config';
 
 const ROOM_SIZE = 2;
-const GAME_IP = '34.159.203.1';
+const GAME_IP = '35.246.204.169';
 const GAME_BASE_PORT = 9000;
 const GAME_PORT_RANGE_SIZE = 1000;
 const GAME_START_TIMEOUT_MS = 45_000;
