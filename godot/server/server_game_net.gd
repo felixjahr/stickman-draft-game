@@ -101,7 +101,12 @@ func receive_game_token(game_token: String) -> void:
 		if multiplayer.multiplayer_peer:
 			multiplayer.multiplayer_peer.disconnect_peer(pid)
 		return
-	var player_id: String = allowed_players[token_hash]
+	var player_id := ""
+	player_id = str(allowed_players[token_hash])
+	if player_id.is_empty():
+		if multiplayer.multiplayer_peer:
+			multiplayer.multiplayer_peer.disconnect_peer(pid)
+		return
 	if pid_by_player_id.has(player_id):
 		var old_pid := pid_by_player_id[player_id]
 		if old_pid != pid:

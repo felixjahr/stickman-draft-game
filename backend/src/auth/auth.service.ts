@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma.service';
 import { ulid } from 'ulid';
@@ -23,7 +27,12 @@ export class AuthService {
     });
   }
 
-  async createGuestAccount() {
+  async createGuestAccount(name?: string) {
+    const trimmedName = name?.trim();
+    if (!trimmedName) {
+      throw new BadRequestException('Name is required');
+    }
+
     const playerId = ulid();
     const sessionId = ulid();
     const refreshToken = this.createRefreshToken();
@@ -31,6 +40,7 @@ export class AuthService {
     await this.prisma.player.create({
       data: {
         id: playerId,
+        name: trimmedName,
         sessions: {
           create: {
             id: sessionId,
@@ -42,13 +52,18 @@ export class AuthService {
 
     return {
       player_id: playerId,
+      player_name: trimmedName,
       access_token: await this.createAccessToken(playerId, sessionId),
       refresh_token: refreshToken,
     };
   }
 
   async refresh(refreshToken: string) {
-    const sessions = await this.prisma.session.findMany();
+    const sessions = await this.prisma.session.findMany({
+      include: {
+        player: true,
+      },
+    });
 
     for (const session of sessions) {
       const matches = await bcrypt.compare(
@@ -59,6 +74,7 @@ export class AuthService {
       if (matches) {
         return {
           player_id: session.playerId,
+          player_name: session.player.name,
           access_token: await this.createAccessToken(
             session.playerId,
             session.id,

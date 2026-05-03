@@ -24,6 +24,8 @@ var inputs: Array[PlayerInput]
 var overlay: Control
 var map: Node2D
 
+var player_names: Dictionary = {}
+
 @onready var game_net := $"../../Net/GameNet"
 @onready var map_container := $MapContainer
 @onready var player_container := $PlayerContainer
@@ -97,6 +99,7 @@ func _render_interpolated_snapshot() -> void:
 		func(player_snapshot): return player_snapshot.player_id,
 		func(player_id):
 			var player = PlayerClient.instantiate()
+			player.player_name = str(player_names.get(player_id, player_id))
 			player_container.add_child(player)
 			return player
 	)

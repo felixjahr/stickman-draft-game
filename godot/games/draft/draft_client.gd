@@ -17,6 +17,7 @@ enum GameState {
 var state: GameState
 
 var map_id: String
+var player_names: Dictionary = {}
 
 var draft_screen: Control
 
@@ -27,6 +28,7 @@ var draft_screen: Control
 
 func _ready() -> void:
 	logic.spawn_map(map_id)
+	logic.player_names = player_names
 	game_net.connect("snapshot_received", _on_net_snapshot_received)
 	game_net.connect("state_sync_received", _on_net_state_sync_received)
 
@@ -57,7 +59,7 @@ func _enter_state(data = null) -> void:
 		logic.stop()
 		emit_signal("match_over")
 		var new_gameover = Gameover.instantiate()
-		new_gameover.ranking = data["ranking"]
+		new_gameover.ranking = _get_display_ranking(data["ranking"])
 		ui.add_child(new_gameover)
 		new_gameover.continue_button.connect("pressed", _on_gameover_continue_pressed)
 
@@ -87,3 +89,11 @@ func _on_draft_screen_draft_finished(draft_result: Array[int]) -> void:
 
 func _on_gameover_continue_pressed() -> void:
 	emit_signal("ended")
+
+
+func _get_display_ranking(ranking: Array) -> Array[String]:
+	var display_ranking: Array[String] = []
+	for player_id in ranking:
+		var id := str(player_id)
+		display_ranking.append(str(player_names.get(id, id)))
+	return display_ranking

@@ -1,7 +1,7 @@
 extends Node
 
 signal room_code_received(code: String)
-signal room_start_received(port: int, ip: String, game_token: String)
+signal room_start_received(port: int, ip: String, game_token: String, player_names: Dictionary)
 signal room_failed_received
 
 const HTTP_BASE := "http://35.246.204.169:8000"
@@ -37,7 +37,11 @@ func _process(_delta: float) -> void:
 				var ip := str(data.get("ip", ""))
 				var port := int(data.get("port", 0))
 				var game_token := str(data.get("gameToken", ""))
-				emit_signal("room_start_received", port, ip, game_token)
+				var player_names = data.get("playerNames", {})
+				if not (player_names is Dictionary):
+					player_names = {}
+				player_names = _with_snapshot_player_name_keys(player_names)
+				emit_signal("room_start_received", port, ip, game_token, player_names)
 			"roomFailed":
 				emit_signal("room_failed_received")
 
@@ -131,3 +135,11 @@ func _send_auth() -> bool:
 		push_error("WebSocket auth failed to send: %s" % err)
 		return false
 	return true
+
+
+func _with_snapshot_player_name_keys(player_names: Dictionary) -> Dictionary:
+	var keyed_names := player_names.duplicate()
+	for player_id in player_names.keys():
+		var id := str(player_id)
+		keyed_names[str(posmod(id.hash(), 4294967296))] = str(player_names[player_id])
+	return keyed_names

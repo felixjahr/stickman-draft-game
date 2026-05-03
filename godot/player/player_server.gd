@@ -72,12 +72,16 @@ func apply_hit(damage: int) -> void:
 	health -= damage * damage_multiplier
 	last_hit = logic.tick
 	if health <= 0:
-		hearts -= 1
-		if hearts <= 0:
-			logic.gameover()
-			return
-		logic.call_deferred("spawn_player", player_id, weapon_ids, armour_id, hearts)
-		queue_free()
+		_die()
+
+
+func _die() -> void:
+	hearts -= 1
+	if hearts <= 0:
+		logic.gameover()
+		return
+	logic.call_deferred("spawn_player", player_id, weapon_ids, armour_id, hearts)
+	queue_free()
 
 
 func _update_reload_times(delta: float) -> void:
@@ -204,3 +208,7 @@ func _on_hitbox_area_entered(area: Area2D) -> void:
 		return
 	area.get_parent().apply_hit(weapon.damage)
 	area.get_parent().apply_knockback(pivot.global_position, weapon.knockback)
+
+
+func _on_arena_area_exited(area: Area2D) -> void:
+	_die()

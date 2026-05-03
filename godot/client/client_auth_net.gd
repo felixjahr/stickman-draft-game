@@ -2,29 +2,28 @@ extends Node
 
 signal authed
 signal auth_failed
+signal account_required
 
 const HTTP_BASE := "http://35.246.204.169:8000"
 const ACCESS_TOKEN_LIFETIME := 900
 const REFRESH_MARGIN := 30
 
 var player_id := ""
+var player_name := ""
 var access_token := ""
 var refresh_token := ""
 var access_token_expires_at := 0.0
 
 
-func _ready() -> void:
+func authenticate() -> void:
 	refresh_token = _load_refresh_token()
 	if refresh_token.is_empty():
-		await _create_account()
-		if not access_token.is_empty():
-			emit_signal("authed")
-		else:
-			emit_signal("auth_failed")
+		emit_signal("account_required")
 		return
 	if not (await _refresh_session()):
 		refresh_token = ""
-		await _create_account()
+		emit_signal("account_required")
+		return
 	if not access_token.is_empty():
 		emit_signal("authed")
 	else:
@@ -35,7 +34,8 @@ func get_valid_access_token() -> String:
 	var now := Time.get_unix_time_from_system()
 	if now >= access_token_expires_at:
 		if not (await _refresh_session()):
-			await _create_account()
+			_clear_session()
+			emit_signal("account_required")
 	return access_token
 
 
@@ -44,11 +44,17 @@ func get_auth_header() -> Array[String]:
 	return ["Authorization: Bearer " + token]
 
 
-func _create_account() -> bool:
+func create_account(name: String) -> bool:
+	var trimmed_name := name.strip_edges()
+	if trimmed_name.is_empty():
+		return false
 	var response: Dictionary = await HttpUtils.request(
 		self,
 		HTTP_BASE + "/auth/guest",
-		HTTPClient.METHOD_POST
+		HTTPClient.METHOD_POST,
+		{
+			"name": trimmed_name,
+		}
 	)
 	
 	if not response.get("ok", false) or response.get("data") == null:
@@ -56,11 +62,12 @@ func _create_account() -> bool:
 		return false
 	var data: Dictionary = response["data"]
 	player_id = str(data.get("player_id", ""))
+	player_name = str(data.get("player_name", ""))
 	access_token = str(data.get("access_token", ""))
 	refresh_token = str(data.get("refresh_token", ""))
 	access_token_expires_at = Time.get_unix_time_from_system() + ACCESS_TOKEN_LIFETIME - REFRESH_MARGIN
 	_save_refresh_token(refresh_token)
-	return not player_id.is_empty() and not access_token.is_empty() and not refresh_token.is_empty()
+	return not player_id.is_empty() and not player_name.is_empty() and not access_token.is_empty() and not refresh_token.is_empty()
 
 
 func _refresh_session() -> bool:
@@ -77,10 +84,19 @@ func _refresh_session() -> bool:
 		return false
 	var data: Dictionary = response["data"]
 	player_id = str(data.get("player_id", ""))
+	player_name = str(data.get("player_name", ""))
 	access_token = str(data.get("access_token", ""))
 	refresh_token = str(data.get("refresh_token", ""))
 	access_token_expires_at = Time.get_unix_time_from_system() + ACCESS_TOKEN_LIFETIME - REFRESH_MARGIN
-	return not player_id.is_empty() and not access_token.is_empty() and not refresh_token.is_empty()
+	return not player_id.is_empty() and not player_name.is_empty() and not access_token.is_empty() and not refresh_token.is_empty()
+
+
+func _clear_session() -> void:
+	player_id = ""
+	player_name = ""
+	access_token = ""
+	refresh_token = ""
+	access_token_expires_at = 0.0
 
 
 func _save_refresh_token(token: String) -> void:

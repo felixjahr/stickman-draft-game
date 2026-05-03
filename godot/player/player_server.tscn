@@ -11,6 +11,9 @@ size = Vector2(64, 224)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_70xuj"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qhocm"]
+size = Vector2(64, 224)
+
 [node name="PlayerServer" type="CharacterBody2D" unique_id=438842004]
 collision_layer = 0
 script = ExtResource("1_ofeno")
@@ -35,4 +38,12 @@ collision_mask = 2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Pivot/Hitbox" unique_id=842468334]
 shape = SubResource("RectangleShape2D_70xuj")
 
+[node name="Arena" type="Area2D" parent="." unique_id=1275883959]
+collision_layer = 0
+collision_mask = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Arena" unique_id=1779909098]
+shape = SubResource("RectangleShape2D_qhocm")
+
 [connection signal="area_entered" from="Pivot/Hitbox" to="." method="_on_hitbox_area_entered"]
+[connection signal="area_exited" from="Arena" to="." method="_on_arena_area_exited"]

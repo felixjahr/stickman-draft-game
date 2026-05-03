@@ -632,6 +632,7 @@ export type TransactionIsolationLevel =
 
 export const PlayerScalarFieldEnum = {
   id: 'id',
+  name: 'name',
   createdAt: 'createdAt',
 } as const;
 
