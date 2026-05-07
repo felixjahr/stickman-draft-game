@@ -6,8 +6,8 @@ export class AuthController {
   constructor(private auth: AuthService) {}
 
   @Post('guest')
-  createGuest() {
-    return this.auth.createGuestAccount();
+  createGuest(@Body() body: { name?: string }) {
+    return this.auth.createGuestAccount(body.name);
   }
 
   @Post('refresh')

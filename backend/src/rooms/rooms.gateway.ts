@@ -88,6 +88,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     ip: string,
     port: number,
     gameToken: string,
+    playerNames: Record<string, string>,
   ): boolean {
     const socket = this.playerSockets.get(playerId);
     if (!socket || socket.readyState !== socket.OPEN) return false;
@@ -95,7 +96,7 @@ export class RoomsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.send(
       JSON.stringify({
         event: 'receiveRoomStart',
-        data: { ip, port, gameToken },
+        data: { ip, port, gameToken, playerNames },
       }),
     );
     return true;

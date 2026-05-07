@@ -2,6 +2,7 @@ extends Node
 
 enum ClientState {
 	LOADING,
+	ACCOUNT_CREATION,
 	HOME,
 	OPTIONS,
 	CREATING,
@@ -17,6 +18,7 @@ const GAMES: Dictionary[String, PackedScene] = {
 }
 
 const Loading := preload("res://ui/loading/loading.tscn")
+const AccountCreation := preload("res://ui/account_creation/account_creation.tscn")
 const Home := preload("res://ui/home/home.tscn")
 const Options := preload("res://ui/options/options.tscn")
 const Create := preload("res://ui/create/create.tscn")
@@ -50,6 +52,7 @@ var _game_reconnect_enabled := false
 func _ready() -> void:
 	auth_net.connect("authed", _on_net_authed)
 	auth_net.connect("auth_failed", _on_net_auth_failed)
+	auth_net.connect("account_required", _on_net_account_required)
 	backend_net.connect("room_code_received", _on_net_room_code_received)
 	backend_net.connect("room_start_received", _on_net_room_start_received)
 	backend_net.connect("room_failed_received", _on_net_room_failed_received)
@@ -57,6 +60,7 @@ func _ready() -> void:
 	game_net.connect("state_sync_received", _on_net_state_sync_received)
 	multiplayer.server_disconnected.connect(_on_game_server_disconnected)
 	_enter_state(ClientState.LOADING)
+	auth_net.authenticate()
 
 
 func _change_state(new_state: ClientState, data = null) -> void:
@@ -69,13 +73,17 @@ func _enter_state(data = null) -> void:
 	if state == ClientState.LOADING:
 		var new_loading := Loading.instantiate()
 		ui.add_child(new_loading)
+	elif state == ClientState.ACCOUNT_CREATION:
+		var new_account_creation := AccountCreation.instantiate()
+		ui.add_child(new_account_creation)
+		new_account_creation.confirm_button.connect("pressed", _on_account_creation_confirm_pressed)
 	elif state == ClientState.HOME:
 		var new_home := Home.instantiate()
 		ui.add_child(new_home)
 		new_home.create_button.connect("pressed", _on_home_create_pressed)
 		new_home.join_button.connect("pressed", _on_home_join_pressed)
 		new_home.options_button.connect("pressed", _on_home_options_pressed)
-		new_home.name_label.text = auth_net.player_id
+		new_home.name_label.text = auth_net.player_name
 	elif state == ClientState.OPTIONS:
 		var new_options := Options.instantiate()
 		ui.add_child(new_options)
@@ -130,6 +138,7 @@ func _enter_state(data = null) -> void:
 	elif state == ClientState.GAME:
 		var new_game := GAMES[data["game_id"]].instantiate()
 		new_game.map_id = data["map_id"]
+		new_game.player_names = data["player_names"]
 		add_child(new_game)
 		new_game.connect("ended", _on_game_ended)
 		if new_game.has_signal("match_over"):
@@ -149,6 +158,19 @@ func _on_net_authed() -> void:
 
 
 func _on_net_auth_failed() -> void:
+	_change_state(ClientState.ACCOUNT_CREATION)
+
+
+func _on_net_account_required() -> void:
+	_change_state(ClientState.ACCOUNT_CREATION)
+
+
+func _on_account_creation_confirm_pressed() -> void:
+	var account_creation = ui.get_child(0)
+	account_creation.confirm_button.disabled = true
+	if not await auth_net.create_account(account_creation.name_edit.text):
+		account_creation.confirm_button.disabled = false
+		return
 	_change_state(ClientState.HOME)
 
 
@@ -176,7 +198,7 @@ func _on_join_submit_pressed() -> void:
 	_change_state(ClientState.JOINING, ui.get_child(0).code.text)
 
 
-func _on_net_room_start_received(port: int, ip: String, game_token: String) -> void:
+func _on_net_room_start_received(port: int, ip: String, game_token: String, player_names: Dictionary) -> void:
 	if state != ClientState.CREATE and state != ClientState.JOINING:
 		return
 	if port <= 0 or ip.is_empty() or game_token.is_empty():
@@ -186,7 +208,8 @@ func _on_net_room_start_received(port: int, ip: String, game_token: String) -> v
 	_game_connection_data = {
 		"port" : port,
 		"ip" : ip,
-		"game_token" : game_token
+		"game_token" : game_token,
+		"player_names" : player_names,
 	}
 	_game_reconnect_enabled = true
 	_change_state(ClientState.CONNECTING, _game_connection_data)
@@ -214,6 +237,7 @@ func _on_net_init_received(game_id: String, map_id: String) -> void:
 	_change_state(ClientState.GAME, {
 		"game_id" : game_id,
 		"map_id" : map_id,
+		"player_names" : _game_connection_data.get("player_names", {}),
 	})
 
 

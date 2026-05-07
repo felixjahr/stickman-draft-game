@@ -65,7 +65,7 @@ polygon = PackedVector2Array(-382, -487.5, -813, -487.5, -813, -223.5, 813, -223
 
 [node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="." unique_id=318068810]
 position = Vector2(0, 594)
-polygon = PackedVector2Array(-384, 221.5, -811, 221.5, -811, 223.20001, -813, 224.29999, -813, 403.5, -1920, 403.5, -1920, 487.5, 1920, 487.5, 1920, 403.5, 813, 403.5, 811, 224.5, 811, 221.5, 382, 223.5, 382, 403.5, -382, 403.5, -384, 224.5)
+polygon = PackedVector2Array(-2048, -1234, -2048, 558, 2048, 558, 2048, -1234, -2048, -1234, -1920, -1106, 1920, -1106, 1920, 406, 808, 406, 808, 222, 384, 222, 384, 406, -384, 406, -384, 222, -808, 222, -808, 406, -1920, 406, -1920, -1106)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=763750876]
 zoom = Vector2(0.68, 0.68)
@@ -75,6 +75,7 @@ limit_right = 1920
 limit_bottom = 1080
 
 [node name="Arena" type="Area2D" parent="." unique_id=604951091]
+visible = false
 collision_layer = 4
 collision_mask = 0
 

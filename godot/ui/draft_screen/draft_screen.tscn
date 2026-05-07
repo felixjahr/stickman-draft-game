@@ -349,3 +349,12 @@ offset_bottom = 76.5
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("4_xh00t")
+
+[node name="TimerProgressBar" type="ProgressBar" parent="." unique_id=185461453]
+layout_mode = 0
+offset_left = 512.0
+offset_top = 928.0
+offset_right = 1408.0
+offset_bottom = 992.0
+value = 20.0
+show_percentage = false

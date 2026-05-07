@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddv34j4lqtlwq" path="res://player/player_client.gd" id="1_70xuj"]
 [ext_resource type="Shader" uid="uid://bcwr2d8cri1nn" path="res://player/player.gdshader" id="2_7iiga"]
+[ext_resource type="FontFile" uid="uid://oa5dfbx7gq6k" path="res://ui/font.ttf" id="2_y5k0s"]
 [ext_resource type="Texture2D" uid="uid://dd7kfvr4j568x" path="res://player/player.png" id="3_y5k0s"]
 [ext_resource type="Texture2D" uid="uid://3kbh7p6lgmmo" path="res://data/items/armours/heavy_armour/heavy_armour.png" id="4_57ekq"]
 
@@ -1886,6 +1887,17 @@ libraries/ = SubResource("AnimationLibrary_c13yu")
 
 [node name="EffectPlayer" type="AnimationPlayer" parent="." unique_id=1842402160]
 libraries/ = SubResource("AnimationLibrary_6a58i")
+
+[node name="NameLabel" type="Label" parent="." unique_id=1578009378]
+offset_left = -64.0
+offset_top = -256.0
+offset_right = 64.0
+offset_bottom = -216.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_fonts/font = ExtResource("2_y5k0s")
+theme_override_font_sizes/font_size = 32
+vertical_alignment = 1
 
 [node name="HeartContainer" type="HBoxContainer" parent="." unique_id=1892669665]
 offset_left = -64.0

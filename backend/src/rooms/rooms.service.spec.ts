@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { RoomsGateway } from './rooms.gateway';
 import { RoomsService } from './rooms.service';
+import { PrismaService } from '../prisma.service';
 
 describe('RoomsService', () => {
   let service: RoomsService;
@@ -20,6 +21,14 @@ describe('RoomsService', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn(),
+          },
+        },
+        {
+          provide: PrismaService,
+          useValue: {
+            player: {
+              findMany: jest.fn(),
+            },
           },
         },
       ],

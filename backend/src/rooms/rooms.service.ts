@@ -8,9 +8,10 @@ import { randomBytes, createHash, randomInt } from 'crypto';
 import { RoomsGateway } from './rooms.gateway';
 import { Room } from './room.types';
 import { ConfigService } from '@nestjs/config';
+import { PrismaService } from '../prisma.service';
 
 const ROOM_SIZE = 2;
-const GAME_IP = '34.159.203.1';
+const GAME_IP = '35.246.204.169';
 const GAME_BASE_PORT = 9000;
 const GAME_PORT_RANGE_SIZE = 1000;
 const GAME_START_TIMEOUT_MS = 45_000;
@@ -23,6 +24,7 @@ export class RoomsService {
   constructor(
     private readonly roomsGateway: RoomsGateway,
     private readonly config: ConfigService,
+    private readonly prisma: PrismaService,
   ) {
     this.roomsGateway.onPlayerDisconnected((playerId) => {
       this.handlePlayerDisconnected(playerId);
@@ -74,7 +76,9 @@ export class RoomsService {
     room.members.push(playerId);
 
     if (room.members.length === ROOM_SIZE) {
-      this.startServer(room);
+      void this.startServer(room).catch(() => {
+        this.failRoom(room, false);
+      });
     }
 
     return { ok: true };
@@ -111,10 +115,15 @@ export class RoomsService {
 
     let delivered = true;
     for (const playerId of room.members) {
-      const gameToken = room.gameTokens![playerId];
+      const gameToken = room.gameTokens[playerId];
       delivered =
-        this.roomsGateway.sendRoomStart(playerId, room.ip, room.port, gameToken) &&
-        delivered;
+        this.roomsGateway.sendRoomStart(
+          playerId,
+          room.ip,
+          room.port,
+          gameToken,
+          room.playerNames ?? {},
+        ) && delivered;
     }
     if (!delivered) {
       this.failRoom(room, true);
@@ -159,7 +168,21 @@ export class RoomsService {
     }
   }
 
-  private startServer(room: Room): void {
+  private async startServer(room: Room): Promise<void> {
+    if (room.status !== 'waiting') {
+      return;
+    }
+    const players = await this.prisma.player.findMany({
+      where: {
+        id: {
+          in: room.members,
+        },
+      },
+    });
+    const playerNames = Object.fromEntries(
+      players.map((player) => [player.id, player.name]),
+    );
+
     if (room.status !== 'waiting') {
       return;
     }
@@ -169,10 +192,13 @@ export class RoomsService {
 
     const gameTokens: Record<string, string> = {};
     const allowedPlayers: Record<string, string> = {};
+    room.playerNames = playerNames;
     for (const playerId of room.members) {
       const gameToken = randomBytes(32).toString('base64url');
       gameTokens[playerId] = gameToken;
-      const gameTokenHash = createHash('sha256').update(gameToken).digest('hex');
+      const gameTokenHash = createHash('sha256')
+        .update(gameToken)
+        .digest('hex');
       allowedPlayers[gameTokenHash] = playerId;
     }
     room.gameTokens = gameTokens;
@@ -180,8 +206,10 @@ export class RoomsService {
       if (room.status !== 'starting') return;
       this.failRoom(room, true);
     }, GAME_START_TIMEOUT_MS);
-    
-    const serverCallbackSecret = this.config.getOrThrow<string>('SERVER_CALLBACK_SECRET');
+
+    const serverCallbackSecret = this.config.getOrThrow<string>(
+      'SERVER_CALLBACK_SECRET',
+    );
 
     const args = [
       'run',

@@ -4,6 +4,8 @@ const HEART := preload("res://player/heart.tscn")
 const WEAPON_AMMUNITION_BAR := preload("res://player/weapon_ammunition_bar.tscn")
 const WEAPON_AMMUNITION_BAR_SEGMENT := preload("res://player/weapon_ammunition_bar_segment.tscn")
 
+var player_name: String
+
 var local := false
 var last_hit := -1
 var armour_id: String
@@ -13,6 +15,7 @@ var camera: Camera2D
 var weapon_sprites: Array[Sprite2D] = []
 var weapon_ammunition_bars: Array[HBoxContainer] = []
 
+@onready var name_label := $NameLabel
 @onready var sprite := $Sprite
 @onready var heart_container := $HeartContainer
 @onready var health_bar := $HealthBar
@@ -35,6 +38,10 @@ var weapon_ammunition_bars: Array[HBoxContainer] = []
 	$Sprite/RightShoulder/RightUpperArm/ArmourRightUpperArm,
 	$Sprite/RightShoulder/RightLowerArm/ArmourRightLowerArm,
 ]
+
+
+func _ready() -> void:
+	name_label.text = player_name
 
 
 func apply_snapshot(snapshot: PlayerSnapshot) -> void:	
