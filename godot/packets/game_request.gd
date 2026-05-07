@@ -2,7 +2,8 @@ class_name GameRequest
 extends RefCounted
 
 enum Type {
-	DRAFT_RESULT
+	DRAFT_PROGRESS,
+	DRAFT_RESULT,
 }
 
 var type: Type
