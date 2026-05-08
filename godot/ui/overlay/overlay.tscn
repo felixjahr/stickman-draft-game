@@ -27,10 +27,9 @@ offset_top = -622.0
 offset_right = 1800.0
 offset_bottom = -322.0
 
-[node name="Dpad" parent="." unique_id=1340316829 instance=ExtResource("3_ai64t")]
+[node name="Dpad" parent="." unique_id=489050156 instance=ExtResource("3_ai64t")]
 layout_mode = 1
-offset_left = -993.0
-offset_top = -36.0
-offset_right = -93.0
-offset_bottom = 564.0
-dpad_scale = 0.7
+offset_left = -875.0
+offset_top = -59.0
+offset_right = -25.0
+offset_bottom = 541.0
