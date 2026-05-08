@@ -26,11 +26,13 @@ func _input(event) -> void:
 		if event.pressed:
 			if get_global_rect().has_point(event.position):
 				is_active = true
+				handle.self_modulate = Color("ffffff7a")
 				centerpoint.global_position = event.position
 				_update_dpad(event.position)
 		else:
 			if is_active:
 				is_active = false
+				handle.self_modulate = Color("ffffff4b")
 				centerpoint.global_position = initial_center_pos
 				_reset_dpad()
 				

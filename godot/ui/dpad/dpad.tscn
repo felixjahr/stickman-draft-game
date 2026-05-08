@@ -35,5 +35,5 @@ texture = ExtResource("2_gwufy")
 offset = Vector2(0, -71)
 
 [node name="Handle" type="Sprite2D" parent="CenterPoint" unique_id=1711795483]
-self_modulate = Color(1, 1, 1, 0.47058824)
+self_modulate = Color(1, 1, 1, 0.23529412)
 texture = ExtResource("3_20nu0")
