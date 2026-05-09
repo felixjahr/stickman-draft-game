@@ -12,6 +12,7 @@ var ability_button_pressed := false
 
 @onready var aim_joystick_0 := $AimJoystick0
 @onready var aim_joystick_1 := $AimJoystick1
+@onready var dpad := $Dpad
 @onready var ability_button := $Ability/Ability
 
 
@@ -21,8 +22,9 @@ func poll() -> void:
 	elif aim_joystick_1.output != weapon_aim_directions[1]:
 		current_weapon = 1
 	weapon_aim_directions = [aim_joystick_0.output, aim_joystick_1.output]
-	direction = Input.get_axis("move_left", "move_right")
-	jumping = Input.is_action_pressed("jump")
+	
+	direction = dpad.output.x
+	jumping = dpad.output.y < 0.0
 	ability = Input.is_action_just_pressed("ability") or ability_button.button_pressed
 
 
