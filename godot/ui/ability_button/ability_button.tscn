@@ -38,9 +38,3 @@ grow_vertical = 2
 fill_mode = 4
 nine_patch_stretch = true
 texture_progress = ExtResource("3_keaip")
-
-[node name="Timer" type="Timer" parent="." unique_id=1934125729]
-one_shot = true
-
-[connection signal="pressed" from="." to="." method="_on_pressed"]
-[connection signal="timeout" from="Timer" to="." method="_on_timer_timeout"]
