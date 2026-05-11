@@ -24,7 +24,7 @@ func poll() -> void:
 	elif aim_joystick_1.is_active:
 		current_weapon = 1
 	weapon_aim_directions = [aim_joystick_0.output, aim_joystick_1.output]
-	if not aim_joystick_0.is_active and not aim_joystick_1.is_active and not dpad.is_active:
+	if not aim_joystick_0.is_active and not aim_joystick_1.is_active and not dpad.is_active and not ability_button.is_hovered():
 		var local_player: Node2D = logic.players.get(logic.local_player_id)
 		if local_player:
 			var pivot: Vector2 = local_player.right_shoulder.global_position
@@ -38,6 +38,10 @@ func poll() -> void:
 	direction = int(signf(Input.get_axis("move_left", "move_right") + dpad.output.x))
 	jumping = Input.is_action_pressed("jump") or dpad.output.y < 0.0
 	ability = Input.is_action_just_pressed("ability") or ability_button.is_pressed()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	pass
 
 
 func apply_snapshot(snapshot: PlayerSnapshot) -> void:
