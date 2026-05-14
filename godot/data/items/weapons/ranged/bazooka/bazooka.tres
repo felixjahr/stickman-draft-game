@@ -8,6 +8,7 @@
 script = ExtResource("1_kk47c")
 bullet_speed = 500
 bullet_damage = 30
+bullet_offset = Vector2(156, -27.5)
 bullet_amount = 1
 attack_duration = 0.4
 aim_animation = "aim_ranged"

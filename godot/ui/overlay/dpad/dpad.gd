@@ -9,6 +9,7 @@ const VERTICAL_THRESHOLD = 0.4
 
 var output := Vector2.ZERO
 var is_active : bool = false
+var touch_index := -1
 var initial_center_pos : Vector2
 
 @onready var center_point = $CenterPoint
@@ -24,20 +25,25 @@ func _ready() -> void:
 func _input(event) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			if get_global_rect().has_point(event.position):
+			if touch_index == -1 and get_global_rect().has_point(event.position):
+				touch_index = event.index
 				is_active = true
 				handle.self_modulate = Color("ffffff7a")
 				center_point.global_position = event.position
 				_update_dpad(event.position)
+				get_viewport().set_input_as_handled()
 		else:
-			if is_active:
+			if event.index == touch_index:
 				is_active = false
+				touch_index = -1
 				handle.self_modulate = Color("ffffff4b")
 				center_point.global_position = initial_center_pos
 				_reset_dpad()
+				get_viewport().set_input_as_handled()
 	
-	if event is InputEventScreenDrag and is_active:
+	if event is InputEventScreenDrag and event.index == touch_index:
 		_update_dpad(event.position)
+		get_viewport().set_input_as_handled()
 
 
 func _update_dpad(finger_position : Vector2) -> void:

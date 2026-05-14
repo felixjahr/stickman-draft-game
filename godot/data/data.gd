@@ -34,16 +34,16 @@ const WEAPON_IDS: Array[String] = [
 ]
 
 const WEAPON: Dictionary[String, Weapon] = {
-	"axe": preload("res://data/items/weapons/melee/axe/axe.tres"),
-	"hammer": preload("res://data/items/weapons/melee/hammer/hammer.tres"),
+	#"axe": preload("res://data/items/weapons/melee/axe/axe.tres"),
+	#"hammer": preload("res://data/items/weapons/melee/hammer/hammer.tres"),
 	"spear": preload("res://data/items/weapons/melee/spear/spear.tres"),
 	"sword": preload("res://data/items/weapons/melee/sword/sword.tres"),
-	"bazooka" : preload("res://data/items/weapons/ranged/bazooka/bazooka.tres"),
+	#"bazooka" : preload("res://data/items/weapons/ranged/bazooka/bazooka.tres"),
 	"gun": preload("res://data/items/weapons/ranged/gun/gun.tres"),
 	"rifle": preload("res://data/items/weapons/ranged/rifle/rifle.tres"),
-	"shotgun": preload("res://data/items/weapons/ranged/shotgun/shotgun.tres"),
-	"smg": preload("res://data/items/weapons/ranged/smg/smg.tres"),
-	"sniper": preload("res://data/items/weapons/ranged/sniper/sniper.tres"),
+	#"shotgun": preload("res://data/items/weapons/ranged/shotgun/shotgun.tres"),
+	#"smg": preload("res://data/items/weapons/ranged/smg/smg.tres"),
+	#"sniper": preload("res://data/items/weapons/ranged/sniper/sniper.tres"),
 }
 
 const ABILITY_IDS: Array[String] = [
