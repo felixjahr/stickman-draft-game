@@ -4,7 +4,6 @@
 [ext_resource type="Shader" uid="uid://bcwr2d8cri1nn" path="res://player/player.gdshader" id="2_7iiga"]
 [ext_resource type="FontFile" uid="uid://oa5dfbx7gq6k" path="res://ui/font.ttf" id="2_y5k0s"]
 [ext_resource type="Texture2D" uid="uid://dd7kfvr4j568x" path="res://player/player.png" id="3_y5k0s"]
-[ext_resource type="Texture2D" uid="uid://3kbh7p6lgmmo" path="res://data/items/armours/heavy_armour/heavy_armour.png" id="4_57ekq"]
 
 [sub_resource type="Animation" id="Animation_yllr7"]
 length = 0.001
@@ -1824,45 +1823,6 @@ _data = {
 &"run": SubResource("Animation_rgyib")
 }
 
-[sub_resource type="Animation" id="Animation_g1dw6"]
-length = 0.001
-step = 0.1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite:material:shader_parameter/white_amount")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [0.0]
-}
-
-[sub_resource type="Animation" id="Animation_boad6"]
-resource_name = "hit"
-length = 0.3
-step = 0.1
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Sprite:material:shader_parameter/white_amount")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
-"update": 0,
-"values": [0.0, 1.0, 1.0, 0.0]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_6a58i"]
-_data = {
-&"RESET": SubResource("Animation_g1dw6"),
-&"hit": SubResource("Animation_boad6")
-}
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xaw5s"]
 bg_color = Color(0.11050001, 0.65, 0.2184, 1)
 corner_radius_top_left = 6
@@ -1871,10 +1831,12 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 corner_detail = 6
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_wnc8m"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_7iiga"]
 resource_local_to_scene = true
 shader = ExtResource("2_7iiga")
-shader_parameter/white_amount = 0.0
+shader_parameter/flash_amount = 0.0
+shader_parameter/invisibility_amount = 0.0
+shader_parameter/reveal_amount = 0.0
 
 [node name="PlayerClient" type="Node2D" unique_id=1793409614]
 script = ExtResource("1_70xuj")
@@ -1885,10 +1847,14 @@ libraries/ = SubResource("AnimationLibrary_ti1m6")
 [node name="BodyPlayer" type="AnimationPlayer" parent="." unique_id=1052164837]
 libraries/ = SubResource("AnimationLibrary_c13yu")
 
-[node name="EffectPlayer" type="AnimationPlayer" parent="." unique_id=1842402160]
-libraries/ = SubResource("AnimationLibrary_6a58i")
+[node name="Status" type="Control" parent="." unique_id=1180152194]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
 
-[node name="NameLabel" type="Label" parent="." unique_id=1578009378]
+[node name="NameLabel" type="Label" parent="Status" unique_id=1578009378]
+layout_mode = 0
 offset_left = -64.0
 offset_top = -256.0
 offset_right = 64.0
@@ -1899,13 +1865,15 @@ theme_override_fonts/font = ExtResource("2_y5k0s")
 theme_override_font_sizes/font_size = 32
 vertical_alignment = 1
 
-[node name="HeartContainer" type="HBoxContainer" parent="." unique_id=1892669665]
+[node name="HeartContainer" type="HBoxContainer" parent="Status" unique_id=1892669665]
+layout_mode = 0
 offset_left = -64.0
 offset_top = -212.0
 offset_right = 64.0
 offset_bottom = -188.0
 
-[node name="HealthBar" type="ProgressBar" parent="." unique_id=868168642]
+[node name="HealthBar" type="ProgressBar" parent="Status" unique_id=868168642]
+layout_mode = 0
 offset_left = -64.0
 offset_top = -184.0
 offset_right = 64.0
@@ -1915,21 +1883,20 @@ step = 1.0
 value = 100.0
 show_percentage = false
 
-[node name="WeaponAmmunitionBarContainer" type="VBoxContainer" parent="." unique_id=1039700294]
+[node name="WeaponAmmunitionBarContainer" type="VBoxContainer" parent="Status" unique_id=1039700294]
+layout_mode = 0
 offset_left = -64.0
 offset_top = -156.0
 offset_right = 64.0
 offset_bottom = -116.0
 
-[node name="Sprite" type="Node2D" parent="." unique_id=551199965]
-material = SubResource("ShaderMaterial_wnc8m")
+[node name="Sprite" type="CanvasGroup" parent="." unique_id=672538185]
+material = SubResource("ShaderMaterial_7iiga")
 
 [node name="LeftShoulder" type="Node2D" parent="Sprite" unique_id=961770386]
-use_parent_material = true
 position = Vector2(-3, -52)
 
 [node name="LeftUpperArm" type="Sprite2D" parent="Sprite/LeftShoulder" unique_id=1043739163]
-use_parent_material = true
 position = Vector2(1.9999999, 18)
 rotation = 1.4459553
 scale = Vector2(0.9999999, 0.9999999)
@@ -1938,13 +1905,11 @@ region_enabled = true
 region_rect = Rect2(0, 96, 88, 48)
 
 [node name="ArmourLeftUpperArm" type="Sprite2D" parent="Sprite/LeftShoulder/LeftUpperArm" unique_id=48590522]
-use_parent_material = true
 scale = Vector2(0.9999999, 0.9999999)
 region_enabled = true
 region_rect = Rect2(0, 96, 88, 48)
 
 [node name="LeftLowerArm" type="Sprite2D" parent="Sprite/LeftShoulder" unique_id=761920105]
-use_parent_material = true
 position = Vector2(26.999998, 49.000004)
 rotation = -5.853834
 scale = Vector2(0.9999997, 0.9999997)
@@ -1953,12 +1918,10 @@ region_enabled = true
 region_rect = Rect2(0, 144, 88, 48)
 
 [node name="ArmourLeftLowerArm" type="Sprite2D" parent="Sprite/LeftShoulder/LeftLowerArm" unique_id=97328476]
-use_parent_material = true
 region_enabled = true
 region_rect = Rect2(0, 144, 88, 48)
 
 [node name="LeftLowerLeg" type="Sprite2D" parent="Sprite" unique_id=141114213]
-use_parent_material = true
 position = Vector2(8.000002, 74)
 rotation = 1.5834183
 texture = ExtResource("3_y5k0s")
@@ -1966,26 +1929,22 @@ region_enabled = true
 region_rect = Rect2(88, 144, 96, 48)
 
 [node name="ArmourLeftLowerLeg" type="Sprite2D" parent="Sprite/LeftLowerLeg" unique_id=1891310166]
-use_parent_material = true
 region_enabled = true
 region_rect = Rect2(88, 144, 96, 48)
 
 [node name="LeftUpperLeg" type="Sprite2D" parent="Sprite" unique_id=202184540]
-use_parent_material = true
 position = Vector2(2.0000005, 23.000002)
 rotation = 1.2902808
-scale = Vector2(0.99999994, 0.99999994)
+scale = Vector2(0.9999999, 0.9999999)
 texture = ExtResource("3_y5k0s")
 region_enabled = true
 region_rect = Rect2(88, 96, 96, 48)
 
 [node name="ArmourLeftUpperLeg" type="Sprite2D" parent="Sprite/LeftUpperLeg" unique_id=1564532100]
-use_parent_material = true
 region_enabled = true
 region_rect = Rect2(88, 96, 96, 48)
 
 [node name="LowerTorso" type="Sprite2D" parent="Sprite" unique_id=634764315]
-use_parent_material = true
 position = Vector2(-5, -7.000001)
 rotation = 1.5913894
 texture = ExtResource("3_y5k0s")
@@ -1993,12 +1952,10 @@ region_enabled = true
 region_rect = Rect2(0, 240, 80, 48)
 
 [node name="ArmourLowerTorso" type="Sprite2D" parent="Sprite/LowerTorso" unique_id=1931935849]
-use_parent_material = true
 region_enabled = true
 region_rect = Rect2(0, 240, 80, 48)
 
 [node name="RightUpperLeg" type="Sprite2D" parent="Sprite" unique_id=1939437068]
-use_parent_material = true
 position = Vector2(-9, 25)
 rotation = -1.4336473
 texture = ExtResource("3_y5k0s")
@@ -2006,27 +1963,23 @@ region_enabled = true
 region_rect = Rect2(88, 0, 96, 48)
 
 [node name="ArmourRightUpperLeg" type="Sprite2D" parent="Sprite/RightUpperLeg" unique_id=511635896]
-use_parent_material = true
-texture = ExtResource("4_57ekq")
+texture = ExtResource("3_y5k0s")
 region_enabled = true
 region_rect = Rect2(88, 0, 96, 48)
 
 [node name="RightLowerLeg" type="Sprite2D" parent="Sprite" unique_id=1706864986]
-use_parent_material = true
 position = Vector2(-15.999998, 74)
 rotation = 1.7345113
-scale = Vector2(0.99999994, 0.99999994)
+scale = Vector2(0.9999999, 0.9999999)
 texture = ExtResource("3_y5k0s")
 region_enabled = true
 region_rect = Rect2(88, 48, 96, 48)
 
 [node name="ArmourRightLowerLeg" type="Sprite2D" parent="Sprite/RightLowerLeg" unique_id=1197738078]
-use_parent_material = true
 region_enabled = true
 region_rect = Rect2(88, 48, 96, 48)
 
 [node name="UpperTorso" type="Sprite2D" parent="Sprite" unique_id=468705808]
-use_parent_material = true
 position = Vector2(-4, -38)
 rotation = 1.5827934
 texture = ExtResource("3_y5k0s")
@@ -2034,28 +1987,23 @@ region_enabled = true
 region_rect = Rect2(0, 192, 80, 48)
 
 [node name="ArmourUpperTorso" type="Sprite2D" parent="Sprite/UpperTorso" unique_id=990518551]
-use_parent_material = true
 region_enabled = true
 region_rect = Rect2(0, 192, 80, 48)
 
 [node name="Head" type="Sprite2D" parent="Sprite" unique_id=1572612362]
-use_parent_material = true
 position = Vector2(-1, -81)
 texture = ExtResource("3_y5k0s")
 region_enabled = true
 region_rect = Rect2(88, 192, 80, 80)
 
 [node name="ArmourHead" type="Sprite2D" parent="Sprite/Head" unique_id=1128809496]
-use_parent_material = true
 region_enabled = true
 region_rect = Rect2(88, 192, 80, 80)
 
 [node name="RightShoulder" type="Node2D" parent="Sprite" unique_id=76610903]
-use_parent_material = true
 position = Vector2(-3, -52)
 
 [node name="RightUpperArm" type="Sprite2D" parent="Sprite/RightShoulder" unique_id=602846584]
-use_parent_material = true
 position = Vector2(-17, 17)
 rotation = -0.8895179
 scale = Vector2(0.9999994, 0.9999994)
@@ -2064,14 +2012,11 @@ region_enabled = true
 region_rect = Rect2(0, 0, 88, 48)
 
 [node name="ArmourRightUpperArm" type="Sprite2D" parent="Sprite/RightShoulder/RightUpperArm" unique_id=1732497995]
-z_index = 2
-use_parent_material = true
 position = Vector2(4.3945303e-07, 8.463905e-07)
 region_enabled = true
 region_rect = Rect2(0, 0, 88, 48)
 
 [node name="RightLowerArm" type="Sprite2D" parent="Sprite/RightShoulder" unique_id=1266056477]
-use_parent_material = true
 position = Vector2(-19.999998, 54)
 rotation = 1.1327187
 scale = Vector2(0.9999995, 0.9999995)
@@ -2080,12 +2025,9 @@ region_enabled = true
 region_rect = Rect2(0, 48, 88, 48)
 
 [node name="ArmourRightLowerArm" type="Sprite2D" parent="Sprite/RightShoulder/RightLowerArm" unique_id=1725238360]
-z_index = 1
-use_parent_material = true
 region_enabled = true
 region_rect = Rect2(0, 48, 88, 48)
 
 [node name="WeaponPivot" type="Marker2D" parent="Sprite/RightShoulder/RightLowerArm" unique_id=2138582504]
-use_parent_material = true
 position = Vector2(12, 0)
 rotation = 0.2617994

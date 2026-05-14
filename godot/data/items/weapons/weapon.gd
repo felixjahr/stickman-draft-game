@@ -1,8 +1,8 @@
 class_name Weapon
 extends Item
 
-@export var self_hit: bool = false
-@export var moonwalk: bool = false
+@export var self_hit: bool
+@export var moonwalk: bool
 @export var attack_duration: float
 @export var aim_animation: String
 @export var attack_animation: String

@@ -198,12 +198,14 @@ func _interpolate_player_snapshot(older: PlayerSnapshot, newer: PlayerSnapshot, 
 	snapshot.is_on_floor = newer.is_on_floor
 	snapshot.current_weapon = newer.current_weapon
 	snapshot.attacking = newer.attacking
+	snapshot.ability_active = newer.ability_active
 	snapshot.armour_id = newer.armour_id
 	snapshot.ability_id = newer.ability_id
 	snapshot.weapon_ids = newer.weapon_ids
 	snapshot.weapon_aim_directions = newer.weapon_aim_directions
 	snapshot.weapon_ammunitions = newer.weapon_ammunitions
 	snapshot.last_hit = newer.last_hit
+	snapshot.last_ability = newer.last_ability
 	snapshot.ability_recharge_time = newer.ability_recharge_time
 	return snapshot
 

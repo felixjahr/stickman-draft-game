@@ -8,6 +8,7 @@ var player_name: String
 
 var local := false
 var last_hit := -1
+var last_ability := -1
 var armour_id: String
 var weapon_ids: Array[String] = []
 
@@ -15,15 +16,15 @@ var camera: Camera2D
 var weapon_sprites: Array[Sprite2D] = []
 var weapon_ammunition_bars: Array[HBoxContainer] = []
 
-@onready var name_label := $NameLabel
+@onready var status := $Status
+@onready var name_label := $Status/NameLabel
+@onready var heart_container := $Status/HeartContainer
+@onready var health_bar := $Status/HealthBar
+@onready var weapon_ammunition_bar_container := $Status/WeaponAmmunitionBarContainer
 @onready var sprite := $Sprite
-@onready var heart_container := $HeartContainer
-@onready var health_bar := $HealthBar
 @onready var arm_player := $ArmPlayer
 @onready var body_player := $BodyPlayer
-@onready var effect_player := $EffectPlayer
 @onready var right_shoulder := $Sprite/RightShoulder
-@onready var weapon_ammunition_bar_container := $WeaponAmmunitionBarContainer
 @onready var weapon_pivot := $Sprite/RightShoulder/RightLowerArm/WeaponPivot
 @onready var armour_sprites := [
 	$Sprite/LeftShoulder/LeftUpperArm/ArmourLeftUpperArm,
@@ -51,6 +52,7 @@ func apply_snapshot(snapshot: PlayerSnapshot) -> void:
 	_update_hearts(snapshot)
 	_update_camera()
 	_update_hit_effect(snapshot)
+	_update_ability_state(snapshot)
 	_update_armour(snapshot)
 	_update_weapons(snapshot)
 	_update_weapon_visiblity(snapshot)
@@ -80,7 +82,30 @@ func _update_hit_effect(snapshot: PlayerSnapshot) -> void:
 		last_hit = snapshot.last_hit
 	if snapshot.last_hit > last_hit:
 		last_hit = snapshot.last_hit
-		effect_player.play("hit")
+		var hit_tween = get_tree().create_tween()
+		hit_tween.tween_property(sprite.material, "shader_parameter/flash_amount", 1.0, 0.1)
+		hit_tween.parallel().tween_property(sprite.material, "shader_parameter/reveal_amount", 1.0, 0.1)
+		hit_tween.tween_interval(0.2)
+		hit_tween.tween_property(sprite.material, "shader_parameter/flash_amount", 0.0, 0.1)
+		hit_tween.parallel().tween_property(sprite.material, "shader_parameter/reveal_amount", 0.0, 0.1)
+
+
+func _update_ability_state(snapshot: PlayerSnapshot) -> void:
+	if not local and last_ability == -1:
+		last_ability = snapshot.last_ability
+	if snapshot.last_ability > last_ability:
+		last_ability = snapshot.last_ability
+	if snapshot.ability_active:
+		match snapshot.ability_id:
+			"invisibility":
+				if local:
+					sprite.material.set_shader_parameter("invisibility_amount", 0.5)
+				else:
+					status.hide()
+					sprite.material.set_shader_parameter("invisibility_amount", 1.0)
+	else:
+		status.show()
+		sprite.material.set_shader_parameter("invisibility_amount", 0.0)
 
 
 func _update_armour(snapshot: PlayerSnapshot) -> void:

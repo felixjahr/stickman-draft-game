@@ -11,10 +11,12 @@ var facing: int
 var is_on_floor: bool
 var current_weapon: int
 var attacking: bool
+var ability_active: bool
 var armour_id: String
 var ability_id: String
 var weapon_ids: Array[String]
 var weapon_aim_directions: Array[Vector2]
 var weapon_ammunitions: Array[int]
 var last_hit: int
+var last_ability: int
 var ability_recharge_time: float

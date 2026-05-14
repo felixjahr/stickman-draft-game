@@ -3,6 +3,8 @@ extends TextureButton
 const ABILITIES = {
 	"dash" : ["res://ui/overlay/ability_button/dash_grey.png", "res://ui/overlay/ability_button/dash_color.png"],
 	"double_jump" : ["res://ui/overlay/ability_button/double_jump_grey.png", "res://ui/overlay/ability_button/double_jump_color.png"],
+	"invisibility" : ["res://ui/overlay/ability_button/invisibility_grey.png", "res://ui/overlay/ability_button/invisibility_color.png"],
+	"slam_down" : ["res://ui/overlay/ability_button/slam_down_grey.png", "res://ui/overlay/ability_button/slam_down_color.png"],
 }
 
 @onready var cooldown_bar = $TextureProgressBar

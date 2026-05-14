@@ -56,6 +56,8 @@ static func _write_player(peer: StreamPeerBuffer, snapshot: PlayerSnapshot) -> v
 		flags |= 2
 	if snapshot.attacking:
 		flags |= 4
+	if snapshot.ability_active:
+		flags |= 8
 	peer.put_u8(flags)
 	peer.put_u8(clampi(snapshot.current_weapon, 0, 255))
 	peer.put_u8(_encode_id(snapshot.armour_id, Data.ARMOUR_IDS))
@@ -70,6 +72,7 @@ static func _write_player(peer: StreamPeerBuffer, snapshot: PlayerSnapshot) -> v
 	for ammunition in snapshot.weapon_ammunitions:
 		peer.put_u16(clampi(ammunition, 0, 65535))
 	peer.put_u32(maxi(snapshot.last_hit + 1, 0))
+	peer.put_u32(maxi(snapshot.last_ability + 1, 0))
 	peer.put_float(snapshot.ability_recharge_time)
 
 
@@ -84,6 +87,7 @@ static func _read_player(peer: StreamPeerBuffer) -> PlayerSnapshot:
 	snapshot.facing = -1 if (flags & 1) != 0 else 1
 	snapshot.is_on_floor = (flags & 2) != 0
 	snapshot.attacking = (flags & 4) != 0
+	snapshot.ability_active = (flags & 8) != 0
 	snapshot.current_weapon = int(peer.get_u8())
 	snapshot.armour_id = _decode_id(int(peer.get_u8()), Data.ARMOUR_IDS)
 	snapshot.ability_id = _decode_id(int(peer.get_u8()), Data.ABILITY_IDS)
@@ -100,6 +104,7 @@ static func _read_player(peer: StreamPeerBuffer) -> PlayerSnapshot:
 	for i in ammunition_count:
 		snapshot.weapon_ammunitions.append(int(peer.get_u16()))
 	snapshot.last_hit = int(peer.get_u32()) - 1
+	snapshot.last_ability = int(peer.get_u32()) - 1
 	snapshot.ability_recharge_time = peer.get_float()
 	return snapshot
 

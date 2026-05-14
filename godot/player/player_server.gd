@@ -11,14 +11,15 @@ var health := 100
 var hearts := 3
 var facing := 1
 var current_weapon := 0
-var attacking := false
+var last_hit := -1
+
 var armour_id: String
 var weapon_ids: Array[String]
 var ability_id: String
+
+var attacking := false
 var weapon_aim_directions: Array[Vector2] = []
 var weapon_ammunitions: Array[int] = []
-var last_hit := -1
-
 var reload_times_left: Array[float] = []
 var attack_time_left := 0.0
 var burst_time_left := 0.0
@@ -26,11 +27,16 @@ var burst_weapon: Weapon
 var burst_aim_direction: Vector2
 var burst_bullet_amount: int
 
+var ability_active := false
+var last_ability := -1
 var ability_recharge_time: float
+var ability_time_left := 0.0
 
 @onready var logic := get_parent().get_parent()
 @onready var pivot := $Pivot
 @onready var hitbox_collision_shape := $Pivot/Hitbox/CollisionShape2D
+@onready var slam_down_area := $SlamDown
+@onready var slam_down_marker := $SlamDownMarker
 
 
 func _ready() -> void:
@@ -58,6 +64,17 @@ func tick(delta: float, input: PlayerInput) -> void:
 				_ability_double_jump()
 			"dash":
 				_ability_dash(input.direction)
+			"invisibility":
+				_ability_invisibility()
+			"slam_down":
+				_ability_slam_down()
+	
+	if ability_active:
+		match ability_id:
+			"invisibility":
+				_ability_update_invisibility(delta)
+			"slam_down":
+				_ability_update_slam_down(delta)
 
 	if not attacking:
 		current_weapon = input.current_weapon
@@ -219,12 +236,14 @@ func _update_facing(weapon: Weapon, aim_direction: Vector2) -> void:
 
 
 func _ability_double_jump() -> void:
+	last_ability = logic.tick
 	var armour_jump_multiplier := Data.ARMOUR[armour_id].jump_multiplier
 	var dash_jump_multiplier: float = Data.ABILITY[ability_id].jump_multiplier
 	velocity.y = JUMP_FORCE * armour_jump_multiplier * dash_jump_multiplier
 
 
 func _ability_dash(direction: int) -> void:
+	last_ability = logic.tick
 	var dash_direction: int
 	if direction != 0:
 		dash_direction = direction
@@ -232,6 +251,36 @@ func _ability_dash(direction: int) -> void:
 		dash_direction = facing
 	var distance: int = Data.ABILITY[ability_id].distance
 	move_and_collide(Vector2(dash_direction, 0) * distance)
+
+
+func _ability_invisibility() -> void:
+	ability_active = true
+	ability_time_left = Data.ABILITY[ability_id].duration
+
+
+func _ability_update_invisibility(delta) -> void:
+	ability_time_left -= delta
+	if ability_time_left <= 0.0:
+		ability_active = false
+
+
+func _ability_slam_down() -> void:
+	ability_active = true
+
+
+func _ability_update_slam_down(delta) -> void:
+	var speed: int = Data.ABILITY[ability_id].speed
+	velocity.y = speed
+	velocity.x = 0
+	if is_on_floor():
+		for area in slam_down_area.get_overlapping_areas():
+			if area.get_parent() == self:
+				continue
+			var damage: int = Data.ABILITY[ability_id].damage
+			var knockback: int = Data.ABILITY[ability_id].knockback
+			area.get_parent().apply_hit(damage)
+			area.get_parent().apply_knockback(slam_down_marker.global_position, knockback)
+		ability_active = false
 
 
 func _on_hitbox_area_entered(area: Area2D) -> void:

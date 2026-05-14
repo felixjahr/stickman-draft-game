@@ -9,6 +9,9 @@ height = 208.0
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_65fbn"]
 size = Vector2(64, 224)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_q7r4q"]
+size = Vector2(256, 80)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_70xuj"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_qhocm"]
@@ -27,6 +30,17 @@ collision_mask = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox" unique_id=1441210291]
 shape = SubResource("RectangleShape2D_65fbn")
+
+[node name="SlamDown" type="Area2D" parent="." unique_id=603622016]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SlamDown" unique_id=237870023]
+position = Vector2(0, 64)
+shape = SubResource("RectangleShape2D_q7r4q")
+
+[node name="SlamDownMarker" type="Marker2D" parent="." unique_id=1315547270]
+position = Vector2(0, 128)
 
 [node name="Pivot" type="Marker2D" parent="." unique_id=568768869]
 position = Vector2(0, -52)

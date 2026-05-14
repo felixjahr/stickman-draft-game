@@ -6,7 +6,10 @@
 
 [resource]
 script = ExtResource("1_hsrvr")
+bullet_speed = 1000
+bullet_damage = 10
 bullet_offset = Vector2(147, -26)
+bullet_amount = 1
 attack_duration = 0.5
 aim_animation = "aim_ranged"
 attack_animation = "attack_ranged"

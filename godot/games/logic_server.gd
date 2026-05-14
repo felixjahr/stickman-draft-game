@@ -162,12 +162,14 @@ func _build_player_snapshot(player_id: String) -> PlayerSnapshot:
 	player_snapshot.is_on_floor = player.is_on_floor()
 	player_snapshot.current_weapon = player.current_weapon
 	player_snapshot.attacking = player.attacking
+	player_snapshot.ability_active = player.ability_active
 	player_snapshot.armour_id = player.armour_id
 	player_snapshot.ability_id = player.ability_id
 	player_snapshot.weapon_ids = player.weapon_ids
 	player_snapshot.weapon_aim_directions = player.weapon_aim_directions
 	player_snapshot.weapon_ammunitions = player.weapon_ammunitions
 	player_snapshot.last_hit = player.last_hit
+	player_snapshot.last_ability = player.last_ability
 	player_snapshot.ability_recharge_time = player.ability_recharge_time
 	return player_snapshot
 

@@ -31,14 +31,18 @@ const WEAPON: Dictionary[String, Weapon] = {
 }
 
 const ABILITY_IDS: Array[String] = [
-	"double_jump",
-	"dash",
+	#"double_jump",
+	#"dash",
+	"invisibility",
+	"slam_down",
 ]
 
 const ABILITY: Dictionary[String, Ability] = {
-	"double_jump": preload("res://data/items/abilities/double_jump/double_jump.tres"),
-	"dash": preload("res://data/items/abilities/dash/dash.tres"),
-}
+	#"double_jump": preload("res://data/items/abilities/double_jump/double_jump.tres"),
+	#"dash": preload("res://data/items/abilities/dash/dash.tres"),
+	"invisibility" : preload("res://data/items/abilities/invisibility/invisibility.tres"),
+	"slam_down" : preload("res://data/items/abilities/slam_down/slam_down.tres"),
+ }
 
 const CATEGORIES: Dictionary[String, Dictionary] = {
 	"armour": ARMOUR,
