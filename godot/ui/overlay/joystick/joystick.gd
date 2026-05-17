@@ -1,0 +1,75 @@
+extends Control
+class_name VirtualJoystick
+
+signal released(direction: Vector2)
+
+const DEADZONE_SIZE: float = 10
+const CLAMPZONE_SIZE: float = 120
+
+@export var tip_pressed: Texture2D
+
+var output := Vector2.ZERO
+var deadzone_exited := false
+var active_touch_index := -1
+var is_active := false
+
+@onready var base := $Base
+@onready var tip := $Base/Tip
+@onready var tip_normal: Texture = tip.texture
+@onready var default_base_position: Vector2 = base.position
+@onready var default_tip_position: Vector2 = tip.position
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_activate_touch(event.index, event.position)
+		else:
+			_release_touch(event.index)
+	elif event is InputEventScreenDrag and event.index == active_touch_index:
+		_update_output(event.position)
+		get_viewport().set_input_as_handled()
+
+
+func _activate_touch(touch_index: int, touch_position: Vector2) -> void:
+	if active_touch_index != -1 or not get_global_rect().has_point(touch_position):
+		return
+	base.global_position = touch_position - base.size / 2
+	active_touch_index = touch_index
+	tip.texture = tip_pressed
+	is_active = true
+	_update_output(touch_position)
+	get_viewport().set_input_as_handled()
+
+
+func _release_touch(touch_index: int) -> void:
+	if touch_index != active_touch_index:
+		return
+	if not deadzone_exited:
+		released.emit(Vector2.ZERO)
+	elif output.length_squared() > DEADZONE_SIZE * DEADZONE_SIZE:
+		released.emit(output)
+	_reset_touch()
+	get_viewport().set_input_as_handled()
+
+
+func _update_output(touch_position: Vector2) -> void:
+	var center: Vector2 = base.global_position + base.size / 2
+	var vector: Vector2 = touch_position - center
+	vector = vector.limit_length(CLAMPZONE_SIZE)
+	tip.global_position = center + vector - tip.size / 2
+	if vector.length_squared() > DEADZONE_SIZE * DEADZONE_SIZE:
+		deadzone_exited = true
+		output = vector.normalized()
+	else:
+		output = Vector2.ZERO
+
+
+func _reset_touch():
+	deadzone_exited = false
+	output = Vector2.ZERO
+	active_touch_index = -1
+	tip.texture = tip_normal
+	is_active = false
+	base.position = default_base_position
+	tip.position = default_tip_position

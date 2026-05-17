@@ -1,10 +1,14 @@
 extends Node
 
-const TICK_RATE := 60.0
-const INPUT_LEAD := 5
-const INTERPOLATION_DELAY_TICKS := 5
+const SIMULATION_TICK_RATE := 30
+const RENDER_TICK_RATE := 60
+
+const INPUT_LEAD := 3
+const INTERPOLATION_DELAY_TICKS := 3
+
 const CLOCK_SNAP_THRESHOLD_TICKS := 15.0
 const CLOCK_CORRECTION_FACTOR := 0.2
+
 const SNAPSHOT_BUFFER_SIZE := 128
 const INPUT_BUFFER_SIZE := 128
 
@@ -14,6 +18,8 @@ const BulletClient := preload("res://bullet/bullet_client.tscn")
 var estimated_server_tick: float
 var last_snapshot_tick := -1
 var received_first_snapshot := false
+var last_acknowledged_input_tick := -1
+var last_sampled_input_tick := -1
 
 var players: Dictionary[String, Node2D] = {}
 var bullets: Dictionary[String, Node2D] = {}
@@ -22,7 +28,6 @@ var snapshots: Array[Snapshot]
 var inputs: Array[PlayerInput]
 
 var player_names: Dictionary = {}
-
 var local_player_id := ""
 
 var overlay: Control
@@ -36,35 +41,27 @@ var map: Node2D
 
 
 func _ready() -> void:
+	Engine.physics_ticks_per_second = RENDER_TICK_RATE
 	local_player_id = auth_net.player_id
 	snapshots.resize(SNAPSHOT_BUFFER_SIZE)
 	inputs.resize(INPUT_BUFFER_SIZE)
-	stop()
+	game_net.connect("snapshot_received", _on_net_snapshot_received)
+	set_physics_process(false)
 
 
 func _physics_process(delta: float) -> void:
-	estimated_server_tick += delta * TICK_RATE
+	estimated_server_tick += delta * SIMULATION_TICK_RATE
 	
-	overlay.poll()
-	var input := PlayerInput.new()
-	input.tick = int(estimated_server_tick) + INPUT_LEAD
-	input.current_weapon = overlay.current_weapon
-	input.weapon_aim_directions = overlay.weapon_aim_directions
-	input.direction = overlay.direction
-	input.jumping = overlay.jumping
-	input.ability = overlay.ability
-	inputs[input.tick % INPUT_BUFFER_SIZE] = input
-	game_net.send_input(input)
+	var input_tick := int(estimated_server_tick) + INPUT_LEAD
+	if input_tick > last_sampled_input_tick:
+		var input: PlayerInput = overlay.poll()
+		input.tick = input_tick
+		last_sampled_input_tick = input_tick
+
+		inputs[input.tick % INPUT_BUFFER_SIZE] = input
+		game_net.send_inputs(_build_unacknowledged_inputs(input.tick))
 	
 	_render_interpolated_snapshot()
-
-
-func start() -> void:
-	set_physics_process(true)
-
-
-func stop() -> void:
-	set_physics_process(false)
 
 
 func spawn_map(map_id: String) -> void:
@@ -73,11 +70,12 @@ func spawn_map(map_id: String) -> void:
 	map = new_map
 
 
-func snapshot_received(snapshot: Snapshot) -> void:
+func _on_net_snapshot_received(snapshot: Snapshot, last_acknowledged_tick: int) -> void:
 	if snapshot.tick < last_snapshot_tick:
 		return
 	last_snapshot_tick = snapshot.tick
 	snapshots[snapshot.tick % SNAPSHOT_BUFFER_SIZE] = snapshot
+	last_acknowledged_input_tick = maxi(last_acknowledged_input_tick, last_acknowledged_tick)
 	
 	if not received_first_snapshot:
 		received_first_snapshot = true
@@ -89,6 +87,15 @@ func snapshot_received(snapshot: Snapshot) -> void:
 		estimated_server_tick = snapshot.tick
 	else:
 		estimated_server_tick += clock_error * CLOCK_CORRECTION_FACTOR
+
+
+func _build_unacknowledged_inputs(newest_input_tick: int) -> Array[PlayerInput]:
+	var unacknowledged_inputs: Array[PlayerInput] = []
+	for tick in range(last_acknowledged_input_tick + 1, newest_input_tick + 1):
+		var input := inputs[tick % INPUT_BUFFER_SIZE]
+		if input != null and input.tick == tick:
+			unacknowledged_inputs.append(input)
+	return unacknowledged_inputs
 
 
 func _render_interpolated_snapshot() -> void:
@@ -115,7 +122,6 @@ func _render_interpolated_snapshot() -> void:
 			player_container.add_child(player)
 			return player
 	)
-	
 	_apply_entity_snapshots(
 		bullets,
 		render_snapshot.bullets,
@@ -139,6 +145,7 @@ func _build_interpolated_snapshot(render_tick: float) -> Snapshot:
 		if snapshot.tick >= render_tick:
 			if newer == null or snapshot.tick < newer.tick:
 				newer = snapshot
+
 	if older == null and newer == null:
 		return null
 	if older == null:
@@ -147,44 +154,34 @@ func _build_interpolated_snapshot(render_tick: float) -> Snapshot:
 		return older
 	if older.tick == newer.tick:
 		return newer
-	var alpha := clampf((render_tick - older.tick) / float(newer.tick - older.tick), 0.0, 1.0)
+
+	var alpha := inverse_lerp(float(older.tick), float(newer.tick), render_tick)
 	return _interpolate_snapshots(older, newer, alpha)
 
 
 func _interpolate_snapshots(older: Snapshot, newer: Snapshot, alpha: float) -> Snapshot:
 	var snapshot := Snapshot.new()
-	snapshot.tick = int(round(lerpf(float(older.tick), float(newer.tick), alpha)))
 	snapshot.players = []
 	snapshot.bullets = []
 	
-	var older_players := _index_player_snapshots(older.players)
+	var older_players: Dictionary[String, PlayerSnapshot] = {}
+	for player_snapshot in older.players:
+		older_players[player_snapshot.player_id] = player_snapshot
 	for newer_player in newer.players:
 		if older_players.has(newer_player.player_id):
 			snapshot.players.append(_interpolate_player_snapshot(older_players[newer_player.player_id], newer_player, alpha))
 		else:
 			snapshot.players.append(newer_player)
-	
-	var older_bullets := _index_bullet_snapshots(older.bullets)
+
+	var older_bullets: Dictionary[String, BulletSnapshot] = {}
+	for bullet_snapshot in older.bullets:
+		older_bullets[bullet_snapshot.bullet_id] = bullet_snapshot
 	for newer_bullet in newer.bullets:
 		if older_bullets.has(newer_bullet.bullet_id):
 			snapshot.bullets.append(_interpolate_bullet_snapshot(older_bullets[newer_bullet.bullet_id], newer_bullet, alpha))
 		else:
 			snapshot.bullets.append(newer_bullet)
 	return snapshot
-
-
-func _index_player_snapshots(player_snapshots: Array[PlayerSnapshot]) -> Dictionary[String, PlayerSnapshot]:
-	var indexed: Dictionary[String, PlayerSnapshot] = {}
-	for player_snapshot in player_snapshots:
-		indexed[player_snapshot.player_id] = player_snapshot
-	return indexed
-
-
-func _index_bullet_snapshots(bullet_snapshots: Array[BulletSnapshot]) -> Dictionary[String, BulletSnapshot]:
-	var indexed: Dictionary[String, BulletSnapshot] = {}
-	for bullet_snapshot in bullet_snapshots:
-		indexed[bullet_snapshot.bullet_id] = bullet_snapshot
-	return indexed
 
 
 func _interpolate_player_snapshot(older: PlayerSnapshot, newer: PlayerSnapshot, alpha: float) -> PlayerSnapshot:

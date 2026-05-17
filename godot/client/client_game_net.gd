@@ -1,6 +1,6 @@
 extends Node
 
-signal snapshot_received(snapshot: Snapshot)
+signal snapshot_received(snapshot: Snapshot, last_acknowledged_input_tick: int)
 signal init_received(game_id: String, map_id: String)
 signal state_sync_received(state_sync: StateSync)
 
@@ -26,10 +26,14 @@ func is_connected_to_server() -> bool:
 	return multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED
 
 
-func send_input(input: PlayerInput) -> bool:
+func send_inputs(inputs: Array[PlayerInput]) -> bool:
 	if not is_connected_to_server():
 		return false
-	rpc_id(1, "receive_input", input.to_packet())
+	if inputs.is_empty():
+		return false
+	var batch := PlayerInputBatch.new()
+	batch.inputs = inputs
+	rpc_id(1, "receive_input", batch.to_packet())
 	return true
 
 
@@ -48,8 +52,8 @@ func send_game_request(game_request: GameRequest) -> bool:
 
 
 @rpc("authority", "unreliable")
-func receive_snapshot(snapshot: PackedByteArray) -> void:
-	emit_signal("snapshot_received", Snapshot.from_packet(snapshot))
+func receive_snapshot(snapshot: PackedByteArray, last_acknowledged_input_tick: int) -> void:
+	emit_signal("snapshot_received", Snapshot.from_packet(snapshot), last_acknowledged_input_tick)
 
 
 @rpc("authority", "reliable")

@@ -1,68 +1,59 @@
 extends Control
 
-const MAX_RANGE_X = 146
-const MAX_RANGE_Y = -140
-const HORIZONTAL_CLAMPING = 0.15
-const VERTICAL_CLAMPING = 0.0
-const HORIZONTAL_THRESHOLD = 0.2
-const VERTICAL_THRESHOLD = 0.4
+const CLAMPZONE_SIZE: float = 195
 
-var output := Vector2.ZERO
-var is_active : bool = false
-var touch_index := -1
-var initial_center_pos : Vector2
+@export var tip_pressed: Texture2D
 
-@onready var center_point = $CenterPoint
-@onready var horizontal = $CenterPoint/CanvasGroup/Horizontal
-@onready var vertical = $CenterPoint/CanvasGroup/Vertical
-@onready var handle = $CenterPoint/Handle
+var output := 0.0
+var active_touch_index := -1
+
+@onready var base := $Base
+@onready var tip := $Base/Tip
+@onready var tip_normal: Texture = tip.texture
+@onready var default_base_position: Vector2 = base.position
+@onready var default_tip_position: Vector2 = tip.position
 
 
-func _ready() -> void:
-	initial_center_pos = center_point.global_position
-
-
-func _input(event) -> void:
+func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			if touch_index == -1 and get_global_rect().has_point(event.position):
-				touch_index = event.index
-				is_active = true
-				handle.self_modulate = Color("ffffff7a")
-				center_point.global_position = event.position
-				_update_dpad(event.position)
-				get_viewport().set_input_as_handled()
+			_activate_touch(event.index, event.position)
 		else:
-			if event.index == touch_index:
-				is_active = false
-				touch_index = -1
-				handle.self_modulate = Color("ffffff4b")
-				center_point.global_position = initial_center_pos
-				_reset_dpad()
-				get_viewport().set_input_as_handled()
-	
-	if event is InputEventScreenDrag and event.index == touch_index:
-		_update_dpad(event.position)
+			_release_touch(event.index)
+	elif event is InputEventScreenDrag and event.index == active_touch_index:
+		_update_output(event.position)
 		get_viewport().set_input_as_handled()
 
 
-func _update_dpad(finger_position : Vector2) -> void:
-	var offset = center_point.to_local(finger_position)
-	
-	if abs(offset.x) < MAX_RANGE_X * HORIZONTAL_CLAMPING: offset.x = 0
-	if abs(offset.y) < abs(MAX_RANGE_Y) * VERTICAL_CLAMPING: offset.y = 0
-	
-	offset.x = clamp(offset.x, -MAX_RANGE_X, MAX_RANGE_X)
-	offset.y = clamp(offset.y, MAX_RANGE_Y, 0)
-	
-	handle.position = offset
-	vertical.position.x = offset.x
-	
-	output.x = int(signf(offset.x)) if abs(offset.x) > (MAX_RANGE_X * HORIZONTAL_THRESHOLD) else 0
-	output.y = int(signf(offset.y)) if abs(offset.y) > (abs(MAX_RANGE_Y) * VERTICAL_THRESHOLD) else 0
+func _activate_touch(touch_index: int, touch_position: Vector2) -> void:
+	if active_touch_index != -1 or not get_global_rect().has_point(touch_position):
+		return
+	base.global_position = touch_position - base.size / 2
+	active_touch_index = touch_index
+	tip.texture = tip_pressed
+	_update_output(touch_position)
+	get_viewport().set_input_as_handled()
 
 
-func _reset_dpad() -> void:
-	handle.position = Vector2.ZERO
-	vertical.position.x = 0
-	output = Vector2i.ZERO
+func _release_touch(touch_index: int) -> void:
+	if touch_index != active_touch_index:
+		return
+	_reset_touch()
+	get_viewport().set_input_as_handled()
+
+
+func _update_output(touch_position : Vector2) -> void:
+	var center: Vector2 = base.global_position + base.size / 2
+	var vector: Vector2 = touch_position - center
+	vector.y = 0
+	vector = vector.limit_length(CLAMPZONE_SIZE)
+	tip.global_position = center + vector - tip.size / 2
+	output = remap(vector.x, -CLAMPZONE_SIZE, CLAMPZONE_SIZE, -1.0, 1.0)
+
+
+func _reset_touch():
+	output = 0.0
+	active_touch_index = -1
+	tip.texture = tip_normal
+	base.position = default_base_position
+	tip.position = default_tip_position

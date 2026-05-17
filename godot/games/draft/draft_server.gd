@@ -31,7 +31,6 @@ var fight_starting := false
 
 func _ready() -> void:
 	logic.spawn_map(map_id)
-	game_net.connect("input_received", logic._on_net_input_received)
 	game_net.connect("game_request_received", _on_net_game_request_received)
 	_change_state(GameState.DRAFT)
 
@@ -90,7 +89,7 @@ func _enter_state(data = null) -> void:
 	elif state == GameState.FIGHT:
 		_resolve_draft_results()
 	elif state == GameState.GAMEOVER:
-		logic.stop()
+		logic.set_physics_process(false)
 		for player_id in draft_options_by_player_id.keys():
 			game_net.send_state_sync(player_id, _build_state_sync_for(player_id))
 		emit_signal("ended")
@@ -176,7 +175,7 @@ func _resolve_draft_results() -> void:
 	
 	for player_id in player_ids:
 		logic.spawn_player(player_id, loadouts[player_id]["weapon_ids"], loadouts[player_id]["armour_id"], loadouts[player_id]["ability_id"])
-		logic.start()
+		logic.set_physics_process(true)
 		game_net.send_state_sync(player_id, _build_state_sync_for(player_id))
 
 

@@ -29,7 +29,6 @@ var draft_screen: Control
 func _ready() -> void:
 	logic.spawn_map(map_id)
 	logic.player_names = player_names
-	game_net.connect("snapshot_received", _on_net_snapshot_received)
 	game_net.connect("state_sync_received", _on_net_state_sync_received)
 
 
@@ -60,9 +59,9 @@ func _enter_state(data = null) -> void:
 		var new_overlay = Overlay.instantiate()
 		logic.overlay = new_overlay
 		ui.add_child(new_overlay)
-		logic.start()
+		logic.set_physics_process(true)
 	elif state == GameState.GAMEOVER:
-		logic.stop()
+		logic.set_physics_process(false)
 		emit_signal("match_over")
 		var new_gameover = Gameover.instantiate()
 		new_gameover.ranking = _get_display_ranking(data["ranking"])
@@ -78,12 +77,6 @@ func _exit_state(data = null) -> void:
 
 func _on_net_state_sync_received(state_sync: StateSync) -> void:
 	_change_state(state_sync.phase, state_sync.payload)
-
-
-func _on_net_snapshot_received(snapshot: Snapshot) -> void:
-	if state != GameState.FIGHT:
-		return
-	logic.snapshot_received(snapshot)
 
 
 func _on_draft_screen_draft_finished(draft_result: Array[int]) -> void:

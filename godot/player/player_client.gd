@@ -22,8 +22,7 @@ var weapon_ammunition_bars: Array[HBoxContainer] = []
 @onready var health_bar := $Status/HealthBar
 @onready var weapon_ammunition_bar_container := $Status/WeaponAmmunitionBarContainer
 @onready var sprite := $Sprite
-@onready var arm_player := $ArmPlayer
-@onready var body_player := $BodyPlayer
+@onready var animation_player := $AnimationPlayer
 @onready var right_shoulder := $Sprite/RightShoulder
 @onready var weapon_pivot := $Sprite/RightShoulder/RightLowerArm/WeaponPivot
 @onready var armour_sprites := [
@@ -58,8 +57,7 @@ func apply_snapshot(snapshot: PlayerSnapshot) -> void:
 	_update_weapon_visiblity(snapshot)
 	_update_ammunition_bars(snapshot)
 	_update_facing(snapshot)
-	_update_body_animation(snapshot)
-	_update_arm_animation(snapshot)
+	_update_animation(snapshot)
 
 
 func _update_hearts(snapshot: PlayerSnapshot) -> void:
@@ -137,18 +135,7 @@ func _update_weapons(snapshot: PlayerSnapshot) -> void:
 		weapon_ids[i] = snapshot_weapon_id
 		
 		var weapon := Data.WEAPON[snapshot_weapon_id]
-		_setup_weapon_sprite(i, weapon)
 		_setup_ammunition_bar(i, weapon)
-
-
-func _setup_weapon_sprite(index: int, weapon: Weapon) -> void:
-	if weapon_sprites[index]:
-		weapon_sprites[index].queue_free()
-	var new_weapon_sprite = Sprite2D.new()
-	new_weapon_sprite.texture = weapon.sprite_texture
-	new_weapon_sprite.offset = weapon.sprite_offset
-	weapon_pivot.add_child(new_weapon_sprite)
-	weapon_sprites[index] = new_weapon_sprite
 
 
 func _setup_ammunition_bar(index: int, weapon: Weapon) -> void:
@@ -181,26 +168,22 @@ func _update_facing(snapshot: PlayerSnapshot) -> void:
 	sprite.scale.x = snapshot.facing
 
 
-func _update_body_animation(snapshot: PlayerSnapshot) -> void:
-	if not snapshot.is_on_floor:
-		body_player.play("jump")
-	elif snapshot.velocity.x != 0:
-		body_player.play("run")
-	else:
-		body_player.play("idle")
-
-
-func _update_arm_animation(snapshot: PlayerSnapshot) -> void:
-	var weapon := Data.WEAPON[snapshot.weapon_ids[snapshot.current_weapon]]
+func _update_animation(snapshot: PlayerSnapshot) -> void:
+	var animation_name := ""
 	
-	if snapshot.attacking:
-		arm_player.play(weapon.attack_animation)
-		return
+	if not snapshot.is_on_floor:
+		animation_name += "jump"
+	elif snapshot.velocity.x != 0:
+		animation_name += "run"
+	else:
+		animation_name += "idle"
 	
 	var aim_direction := snapshot.weapon_aim_directions[snapshot.current_weapon]
-	if aim_direction != Vector2.ZERO:
+	right_shoulder.rotation = 0
+	if snapshot.attacking:
+		animation_name += "attack"
+	elif aim_direction != Vector2.ZERO:
+		animation_name += "aim"
 		right_shoulder.look_at(right_shoulder.global_position + aim_direction)
-		arm_player.play(weapon.aim_animation)
-	else:
-		right_shoulder.rotation = 0
-		arm_player.play(body_player.current_animation)
+	
+	animation_name += snapshot.weapon_ids[snapshot.current_weapon]

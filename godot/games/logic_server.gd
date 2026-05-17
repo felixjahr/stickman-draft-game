@@ -1,7 +1,8 @@
 extends Node
 
-const MAX_INPUT_LOOKBACK := 5
-const SNAPSHOT_FREQUENCY := 3
+const SIMULATION_TICK_RATE := 30
+const SNAPSHOT_FREQUENCY := 2
+
 const INPUT_BUFFER_SIZE := 128
 
 const PlayerServer := preload("res://player/player_server.tscn")
@@ -18,6 +19,7 @@ var player_ids: Array[String] = []
 
 var inputs: Dictionary[String, Array] = {}
 var last_inputs: Dictionary[String, PlayerInput] = {}
+var last_acknowledged_input_ticks: Dictionary[String, int] = {}
 
 var map: StaticBody2D
 
@@ -28,7 +30,9 @@ var map: StaticBody2D
 
 
 func _ready() -> void:
-	stop()
+	Engine.physics_ticks_per_second = SIMULATION_TICK_RATE
+	game_net.connect("input_received", _on_net_input_received)
+	set_physics_process(false)
 
 
 func _physics_process(delta: float) -> void:
@@ -38,15 +42,7 @@ func _physics_process(delta: float) -> void:
 	_tick_bullets(delta)
 	
 	if tick % SNAPSHOT_FREQUENCY == 0:
-		game_net.send_snapshot(build_snapshot())
-
-
-func start() -> void:
-	set_physics_process(true)
-
-
-func stop() -> void:
-	set_physics_process(false)
+		game_net.send_snapshot(_build_snapshot(), last_acknowledged_input_ticks)
 
 
 func spawn_map(map_id: String) -> void:
@@ -72,6 +68,7 @@ func spawn_player(player_id: String, weapon_ids: Array[String], armour_id: Strin
 	input_buffer.resize(INPUT_BUFFER_SIZE)
 	inputs[player_id] = input_buffer
 	last_inputs[player_id] = PlayerInput.new()
+	last_acknowledged_input_ticks[player_id] = -1
 
 
 func despawn_player(player_id: String) -> void:
@@ -79,6 +76,9 @@ func despawn_player(player_id: String) -> void:
 		return
 	players[player_id].queue_free()
 	players.erase(player_id)
+	inputs.erase(player_id)
+	last_inputs.erase(player_id)
+	last_acknowledged_input_ticks.erase(player_id)
 	gameover()
 
 
@@ -123,16 +123,15 @@ func _tick_players(delta: float) -> void:
 
 func _get_latest_input(player_id: String) -> PlayerInput:
 	var player_inputs := inputs[player_id]
-	for i in MAX_INPUT_LOOKBACK:
-		var wanted_tick := tick - i
-		var buffered_input = player_inputs[wanted_tick % INPUT_BUFFER_SIZE]
-		if not buffered_input:
-			continue
-		if buffered_input.tick != wanted_tick:
-			continue
-		last_inputs[player_id] = buffered_input
-		return buffered_input
-	return last_inputs.get(player_id, PlayerInput.new())
+	var input: PlayerInput = player_inputs[tick % INPUT_BUFFER_SIZE]
+	if input != null and input.tick == tick:
+		last_inputs[player_id] = input
+		return input
+	var fallback_input: PlayerInput = last_inputs.get(player_id, PlayerInput.new())
+	fallback_input.jumping = false
+	fallback_input.attacking = false
+	fallback_input.ability = false
+	return fallback_input
 
 
 func _tick_bullets(delta: float) -> void:
@@ -140,7 +139,7 @@ func _tick_bullets(delta: float) -> void:
 		bullet.tick(delta)
 
 
-func build_snapshot() -> Snapshot:
+func _build_snapshot() -> Snapshot:
 	var snapshot := Snapshot.new()
 	snapshot.tick = tick
 	for player_id in players.keys():
@@ -187,4 +186,24 @@ func _build_bullet_snapshot(bullet_id: String) -> BulletSnapshot:
 func _on_net_input_received(player_id: String, input: PlayerInput) -> void:
 	if not inputs.has(player_id):
 		return
+	var last_acknowledged_tick := int(last_acknowledged_input_ticks.get(player_id, -1))
+	if last_acknowledged_tick == -1:
+		last_acknowledged_tick = input.tick - 1
+		last_acknowledged_input_ticks[player_id] = last_acknowledged_tick
+	if input.tick <= last_acknowledged_tick:
+		return
+
 	inputs[player_id][input.tick % INPUT_BUFFER_SIZE] = input
+	_advance_acknowledged_input_tick(player_id)
+
+
+func _advance_acknowledged_input_tick(player_id: String) -> void:
+	var player_inputs := inputs[player_id]
+	var acknowledged_tick := int(last_acknowledged_input_ticks.get(player_id, -1))
+	while true:
+		var next_tick := acknowledged_tick + 1
+		var input = player_inputs[next_tick % INPUT_BUFFER_SIZE]
+		if input == null or input.tick != next_tick:
+			break
+		acknowledged_tick = next_tick
+	last_acknowledged_input_ticks[player_id] = acknowledged_tick

@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://byesepmn17h43"]
+
+[ext_resource type="Script" uid="uid://b3d6wnpnfym6h" path="res://ui/overlay/jump_button/jump_button.gd" id="1_k61u5"]
+[ext_resource type="Texture2D" uid="uid://cv3oy0j6d4sbt" path="res://ui/overlay/jump_button/jump_button.png" id="1_wsgvn"]
+[ext_resource type="Texture2D" uid="uid://duqduxip8jjq5" path="res://ui/overlay/jump_button/jump_button_pressed.png" id="2_fnr6x"]
+
+[node name="JumpButton" type="Control" unique_id=673379120]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 150.0
+offset_bottom = 150.0
+script = ExtResource("1_k61u5")
+texture_pressed = ExtResource("2_fnr6x")
+
+[node name="Texture" type="TextureRect" parent="." unique_id=957942666]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_wsgvn")

@@ -43,16 +43,21 @@ func has_connected_peer(pid: int) -> bool:
 	return multiplayer.get_peers().has(pid)
 
 
-func send_snapshot(snapshot: Snapshot) -> void:
+func send_snapshot(snapshot: Snapshot, acknowledged_input_ticks: Dictionary[String, int] = {}) -> void:
 	if not multiplayer.multiplayer_peer:
 		return
 	if multiplayer.get_peers().is_empty():
 		return
-	rpc("receive_snapshot", snapshot.to_packet())
+	var packet := snapshot.to_packet()
+	for player_id in pid_by_player_id.keys():
+		var pid: int = pid_by_player_id[player_id]
+		if has_connected_peer(pid):
+			var acknowledged_tick := int(acknowledged_input_ticks.get(player_id, -1))
+			rpc_id(pid, "receive_snapshot", packet, acknowledged_tick)
 
 
 @rpc("authority", "unreliable")
-func receive_snapshot(snapshot: PackedByteArray) -> void:
+func receive_snapshot(snapshot: PackedByteArray, last_acknowledged_input_tick: int) -> void:
 	pass
 
 
@@ -85,12 +90,13 @@ func receive_state_sync(state_sync: Dictionary) -> void:
 
 
 @rpc("any_peer", "unreliable")
-func receive_input(input: PackedByteArray) -> void:
+func receive_input(input_batch: PackedByteArray) -> void:
 	var pid := multiplayer.get_remote_sender_id()
 	if not player_id_by_pid.has(pid):
 		return
 	var player_id: String = player_id_by_pid[pid]
-	emit_signal("input_received", player_id, PlayerInput.from_packet(input))
+	for input in PlayerInputBatch.from_packet(input_batch).inputs:
+		emit_signal("input_received", player_id, input)
 
 
 @rpc("any_peer", "reliable")

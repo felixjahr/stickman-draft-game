@@ -81,8 +81,8 @@ func tick(delta: float, input: PlayerInput) -> void:
 		var weapon := Data.WEAPON[weapon_ids[current_weapon]]
 
 		var previous_aim_direction := weapon_aim_directions[current_weapon]
-		var aim_direction := input.weapon_aim_directions[current_weapon]
-		weapon_aim_directions = input.weapon_aim_directions
+		weapon_aim_directions[current_weapon] = input.aim_direction
+		var aim_direction := input.aim_direction
 		
 		if _should_start_attack(aim_direction, previous_aim_direction):
 			_start_attack(weapon, previous_aim_direction)
